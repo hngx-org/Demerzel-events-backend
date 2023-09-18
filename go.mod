@@ -1,4 +1,4 @@
-module Demerzel-Events
+module demerzel-events
 
 go 1.19
 

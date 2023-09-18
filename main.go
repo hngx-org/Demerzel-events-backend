@@ -1,8 +1,6 @@
 package main
 
-import (
-	"Demerzel-Events/api"
-)
+import "demerzel-events/api"
 
 func main() {
 	srv := api.NewServer(5001, api.BuildRoutes())

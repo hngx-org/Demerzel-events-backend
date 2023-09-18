@@ -1,7 +1,7 @@
 package api
 
 import (
-	"Demerzel-Events/internal/handlers"
+	"demerzel-events/internal/handlers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
