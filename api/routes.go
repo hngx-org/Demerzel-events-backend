@@ -1,6 +1,7 @@
 package api
 
 import (
+	"Demerzel-Events/internal/handlers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -14,9 +15,7 @@ func BuildRoutes() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.Default())
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "Team Demerzel API!"})
-	})
+	r.GET("/health", handlers.HealthHandler)
 
 	return r
 }
