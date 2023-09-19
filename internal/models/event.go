@@ -2,14 +2,15 @@ package models
 
 import (
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"time"
 )
 
 type Event struct {
-	Id          uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
+	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Creator     uuid.UUID `json:"creator"`
+	Creator     string    `json:"creator" gorm:"type:varchar(255)"`
 	Location    string    `json:"location"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
@@ -21,20 +22,40 @@ type Event struct {
 	EventCreator User `gorm:"foreignKey:Creator"`
 }
 
-type InterestedEvent struct {
-	Id      uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
-	UserId  uuid.UUID `json:"user_id"`
-	EventId uuid.UUID `json:"event_id"`
+func (e *Event) BeforeCreate(tx *gorm.DB) error {
+	e.Id = uuid.NewString()
 
-	User  User  `gorm:"foreignKey:User"`
-	Event Event `gorm:"foreignKey:Event"`
+	return nil
+}
+
+type InterestedEvent struct {
+	gorm.Model
+	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	UserId  string `json:"user_id" gorm:"type:varchar(255)"`
+	EventId string `json:"event_id" gorm:"type:varchar(255)"`
+
+	User  User  `gorm:"foreignKey:UserId"`
+	Event Event `gorm:"foreignKey:EventId"`
+}
+
+func (iE *InterestedEvent) BeforeCreate(tx *gorm.DB) error {
+	iE.Id = uuid.NewString()
+
+	return nil
 }
 
 type GroupEvent struct {
-	Id      uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
-	GroupId uuid.UUID `json:"group_id"`
-	EventId uuid.UUID `json:"event_id"`
+	gorm.Model
+	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	GroupId string `json:"group_id" gorm:"type:varchar(255)"`
+	EventId string `json:"event_id" gorm:"type:varchar(255)"`
 
-	// needs Group model.
-	Event Event `gorm:"foreignKey:Event"`
+	Group Group `gorm:"foreignKey:"GroupId"`
+	Event Event `gorm:"foreignKey:EventId"`
+}
+
+func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
+	gE.Id = uuid.NewString()
+
+	return nil
 }
