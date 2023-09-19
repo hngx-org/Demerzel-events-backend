@@ -1,6 +1,7 @@
 package user
 
 import (
+	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
 	"fmt"
@@ -53,8 +54,14 @@ func ForgotPassword(reqBody models.ForgotPassword) (int, error) {
 }
 
 func getUserFromDB(email string) (models.User, error) {
+	
 	// get user from db
-	return models.User{}, nil
+	var user models.User
+	err:=db.DB.Preload("Events").Where("Email=?",email).Find(&user).Error
+	if err != nil {
+        return models.User{}, err
+    }
+	return user, nil
 }
 
 
