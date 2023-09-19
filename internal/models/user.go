@@ -1,6 +1,7 @@
 package models
 
 import (
+<<<<<<< HEAD
     "github.com/google/uuid"
     "gorm.io/gorm"
 )
@@ -30,4 +31,53 @@ type UserResponse struct {
     Name   string `json:"name"`
     Email  string `json:"email"`
     Avatar string `json:"avatar"`
+=======
+	"github.com/google/uuid"
+)
+
+type User struct {
+	Id           uuid.UUID `gorm:"type:uuid;primaryKey;unique"`
+	Name         string    `gorm:"type:varchar(255)"`
+	Email        string    `gorm:"type:varchar(255);unique"`
+	Password     string    `gorm:"type:varchar(255)"`
+	AccessToken  string    `gorm:"type:varchar(255)"`
+	RefreshToken string    `gorm:"type:varchar(255)"`
+	Avatar       string    `gorm:"type:varchar(255)"`
+}
+
+type UserResponse struct {
+	Username  string
+	Email     string
+	Token     string
+	TokenType string
+}
+
+type UserSignUp struct {
+	Name     string `gorm:"type:varchar(255)"`
+	Email    string `gorm:"type:varchar(255)"`
+	Password string `gorm:"type:varchar(255)"`
+	Avatar   string `gorm:"type:varchar(255)"`
+}
+
+type UserLogin struct {
+	Email    string `gorm:"type:varchar(255)"`
+	Password string `gorm:"type:varchar(255)"`
+}
+
+type PasswordReset struct {
+	Email           string `gorm:"type:varchar(255)"`
+	CurrentPassword string `gorm:"type:varchar(255)"`
+	NewPassword     string `gorm:"type:varchar(255)"`
+	ConfirmPassword string `gorm:"type:varchar(255)"`
+}
+
+type UpdateUser struct {
+	Email  string `gorm:"type:varchar(255)"`
+	Name   string `gorm:"type:varchar(255)"`
+	Avatar string `gorm:"type:varchar(255)"`
+}
+
+type ForgotPassword struct {
+	Email string `gorm:"type:varchar(255)"`
+>>>>>>> 53b284fe009603a470b7c03ac5f9ed99a31ac799
 }
