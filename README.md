@@ -34,7 +34,7 @@ git clone https://github.com/{your username}/Demerzel-events-backend
 ### Steps on how to run server locally
 > Make sure you have setup MySQl env variables
 ```bash
-cp .env.example > .env
+cp .env.example .env
 
 # Make sure you change the values to your local MySQL values
 MYSQL_USERNAME=root
