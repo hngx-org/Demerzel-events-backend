@@ -1,45 +1,33 @@
 package models
 
-import "github.com/google/uuid"
+import (
+    "github.com/google/uuid"
+    "gorm.io/gorm"
+)
 
 type User struct {
-	ID       uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
-	Name     string    `json:"name" validate:"required"`
-	Email    string    `json:"email" validate:"required,email"`
-	Password string    `json:"password" validate:"required"`
+    Id string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+    // Add user fields
+
+    Name         string `gorm:"column:name" json:"name"`
+    Email        string `gorm:"column:email;unique" json:"email"`
+    AccessToken  string `gorm:"column:access_token" json:"access_token"`
+    RefreshToken string `gorm:"column:refresh_token" json:"refresh_token"`
+    Avatar       string `gorm:"column:avatar" json:"avatar"`
+    // Events Relationship
+    Events           []Event     `gorm:"foreignKey:Creator"`
+    InterestedEvents []Event     `gorm:"many2many:interested_events;"`
+    UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+}
+
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+    u.Id = uuid.NewString()
+
+    return nil
 }
 
 type UserResponse struct {
-	Username  string
-	Email     string
-	Token     string
-	TokenType string
-}
-
-type UserSignUp struct {
-	Username string `json:"username" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type UserLogin struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type UpdateUser struct {
-	Email           string `json:"email" validate:"email"`
-	CurrentPassword string `json:"current_password"`
-	NewPassword     string `json:"new_password"`
-	ConfirmPassword string `json:"confirm_password"`
-}
-
-type PasswordReset struct {
-	Email           string `json:"email" validate:"required,email"`
-	Password        string `json:"password" validate:"required"`
-	ConfirmPassword string `json:"confirm_password" validate:"required"`
-}
-
-type ForgotPassword struct {
-	Email string `json:"email" validate:"required,email"`
+    Name   string `json:"name"`
+    Email  string `json:"email"`
+    Avatar string `json:"avatar"`
 }
