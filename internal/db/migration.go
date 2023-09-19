@@ -2,8 +2,8 @@ package db
 
 import "demerzel-events/internal/models"
 
-func Migrate() {
-	DB.AutoMigrate(
+func Migrate() error {
+	err := DB.AutoMigrate(
 		&models.User{},
 		&models.Group{},
 		&models.UserGroup{},
@@ -11,4 +11,5 @@ func Migrate() {
 		&models.GroupEvent{},
 		&models.InterestedEvent{},
 	)
+	return err
 }

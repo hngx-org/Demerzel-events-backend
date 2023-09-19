@@ -44,7 +44,11 @@ func SetupDB() {
 	rawDB.SetMaxIdleConns(20)
 	rawDB.SetMaxOpenConns(100)
 
-	Migrate()
+	err = Migrate()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to migrate DB: %v", err))
+
+	}
 }
 
 // RawDB returns the raw SQL database instance.

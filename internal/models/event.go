@@ -50,7 +50,7 @@ type GroupEvent struct {
 	GroupId string `json:"group_id" gorm:"type:varchar(255)"`
 	EventId string `json:"event_id" gorm:"type:varchar(255)"`
 
-	Group Group `gorm:"foreignKey:"GroupId"`
+	Group Group `gorm:"foreignKey:GroupId"`
 	Event Event `gorm:"foreignKey:EventId"`
 }
 
