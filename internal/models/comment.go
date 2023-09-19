@@ -17,7 +17,7 @@ type Comment struct {
 }
 
 type Image struct {
-	Id        string `json:"id" gorm:"uuid;default:uuid_generate_v4()"`
-	CommentId string `json:"comment_id"`
-	ImageUrl  string `json:"image_url"`
+	Id        uuid.UUID `json:"id" gorm:"uuid;default:uuid_generate_v4()"`
+	CommentId string    `json:"comment_id"`
+	ImageUrl  string    `json:"image_url"`
 }
