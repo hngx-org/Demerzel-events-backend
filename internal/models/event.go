@@ -1,12 +1,15 @@
 package models
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type Event struct {
-	Id          string    `json:"id" gorm:"primaryKey"`
+	Id          uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
-	Creator     string    `json:"creator"`
+	Creator     uuid.UUID `json:"creator"`
 	Location    string    `json:"location"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
@@ -19,16 +22,18 @@ type Event struct {
 }
 
 type InterestedEvent struct {
-	UserId  string `json:"user_id"`
-	EventId string `json:"event_id"`
+	Id      uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
+	UserId  uuid.UUID `json:"user_id"`
+	EventId uuid.UUID `json:"event_id"`
 
 	User  User  `gorm:"foreignKey:User"`
 	Event Event `gorm:"foreignKey:Event"`
 }
 
 type GroupEvent struct {
-	GroupId string `json:"group_id"`
-	EventId string `json:"event_id"`
+	Id      uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
+	GroupId uuid.UUID `json:"group_id"`
+	EventId uuid.UUID `json:"event_id"`
 
 	// needs Group model.
 	Event Event `gorm:"foreignKey:Event"`
