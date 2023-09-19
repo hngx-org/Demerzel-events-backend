@@ -1,43 +1,51 @@
 package models
 
+import (
+	"github.com/google/uuid"
+)
+
 type User struct {
-	UuId        int `json:"uuid"`
-	Name string `json:"name" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required"`
+	Id           uuid.UUID `gorm:"type:uuid;primaryKey;unique"`
+	Name         string    `gorm:"type:varchar(255)"`
+	Email        string    `gorm:"type:varchar(255);unique"`
+	Password     string    `gorm:"type:varchar(255)"`
+	AccessToken  string    `gorm:"type:varchar(255)"`
+	RefreshToken string    `gorm:"type:varchar(255)"`
+	Avatar       string    `gorm:"type:varchar(255)"`
 }
 
 type UserResponse struct {
-	Username string
-	Email string
-	Token string
+	Username  string
+	Email     string
+	Token     string
 	TokenType string
 }
 
 type UserSignUp struct {
-	Username string `json:"username" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Name     string `gorm:"type:varchar(255)"`
+	Email    string `gorm:"type:varchar(255)"`
+	Password string `gorm:"type:varchar(255)"`
+	Avatar   string `gorm:"type:varchar(255)"`
 }
 
 type UserLogin struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type UpdateUser struct {
-	Email           string `json:"email" validate:"email"`
-	CurrentPassword string `json:"current_password"`
-	NewPassword     string `json:"new_password"`
-	ConfirmPassword string `json:"confirm_password"`
+	Email    string `gorm:"type:varchar(255)"`
+	Password string `gorm:"type:varchar(255)"`
 }
 
 type PasswordReset struct {
-	Email string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-	ConfirmPassword string `json:"confirm_password" validate:"required"`
+	Email           string `gorm:"type:varchar(255)"`
+	CurrentPassword string `gorm:"type:varchar(255)"`
+	NewPassword     string `gorm:"type:varchar(255)"`
+	ConfirmPassword string `gorm:"type:varchar(255)"`
+}
+
+type UpdateUser struct {
+	Email  string `gorm:"type:varchar(255)"`
+	Name   string `gorm:"type:varchar(255)"`
+	Avatar string `gorm:"type:varchar(255)"`
 }
 
 type ForgotPassword struct {
-	Email string `json:"email" validate:"required,email"`
+	Email string `gorm:"type:varchar(255)"`
 }
