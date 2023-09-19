@@ -21,5 +21,10 @@ func BuildRoutesHandler() *gin.Engine {
 	r.GET("/health", handlers.HealthHandler)
 	r.GET("/api/users/profile/:id")
 
+	// OAuth routes
+	authRoute := r.Group("/oauth")
+	authRoute.GET("/initialize", handlers.InitalizeOAuthSignIn)
+	authRoute.GET("/callback", handlers.HandleOAuthCallBack)
+
 	return r
 }
