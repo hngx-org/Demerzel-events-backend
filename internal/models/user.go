@@ -1,22 +1,24 @@
 package models
 
+import "github.com/google/uuid"
+
 type User struct {
-	UuId        int `json:"uuid"`
-	Name string `json:"name" validate:"required"`
-	Email     string `json:"email" validate:"required,email"`
-	Password  string `json:"password" validate:"required"`
+	ID       uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
+	Name     string    `json:"name" validate:"required"`
+	Email    string    `json:"email" validate:"required,email"`
+	Password string    `json:"password" validate:"required"`
 }
 
 type UserResponse struct {
-	Username string
-	Email string
-	Token string
+	Username  string
+	Email     string
+	Token     string
 	TokenType string
 }
 
 type UserSignUp struct {
 	Username string `json:"username" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
+	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
@@ -33,8 +35,8 @@ type UpdateUser struct {
 }
 
 type PasswordReset struct {
-	Email string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Email           string `json:"email" validate:"required,email"`
+	Password        string `json:"password" validate:"required"`
 	ConfirmPassword string `json:"confirm_password" validate:"required"`
 }
 
