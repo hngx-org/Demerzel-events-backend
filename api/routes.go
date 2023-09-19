@@ -6,9 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Application struct{}
-
-func BuildRoutes() *gin.Engine {
+func BuildRoutesHandler() *gin.Engine {
 	r := gin.New()
 
 	r.Use(gin.Logger())
