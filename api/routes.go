@@ -20,7 +20,6 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
-	r.POST("/groups/:group_id/user/:user_id/unsubscribe", handlers.UnsubscribeUserFromGroupHandler)
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
@@ -37,6 +36,7 @@ func BuildRoutesHandler() *gin.Engine {
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+	apiRoutes.POST("/groups/:group_id/user/:user_id/unsubscribe", handlers.UnsubscribeFromGroup)
 
 	return r
 }

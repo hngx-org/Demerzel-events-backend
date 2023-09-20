@@ -1,45 +1,29 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
-	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
+	"demerzel-events/services"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func UnsubscribeUserFromGroupHandler(c *gin.Context) {
+func UnsubscribeFromGroup(c *gin.Context) {
 	groupID := c.Param("group_id")
 	userID := c.Param("user_id")
 
-	var userGroup models.UserGroup
+	err := services.DeleteUserGroup(string(userID), string(groupID))
 
-	// result := db.DB.First(&userGroupInstance)
-	// result := db.DB.Where("UserID = ? AND GroupID= ?", string(userID), string(groupID)).First(&userGroupInstance)
-	result := db.DB.Where(&models.UserGroup{
-		UserID:  string(userID),
-		GroupID: string(groupID),
-	}).First(&userGroup)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// User is not subscribed to this group, no need to unsubscribe
+			response.Error(c, "User not subscribed to this group")
+			return
+		}
 
-	if result.Error != nil {
-		c.JSON(404, gin.H{
-			"status":  "error",
-			"message": "User not subscribed to this group",
-		})
+		response.Error(c, "Failed to unsubscribe user from group")
 		return
 	}
 
-	result = db.DB.Delete(&userGroup)
-
-	if result.Error != nil {
-		c.JSON(500, gin.H{
-			"status":  "error",
-			"message": "Failed to unsubscribe user from group",
-		})
-		return
-	}
-
-	c.JSON(201, gin.H{
-		"status":  "success",
-		"message": "User successfully unsubscribed to group",
-	})
+	response.Success(c, "User successfully unsubscribed to group", map[string]any{})
 }
