@@ -21,5 +21,21 @@ func BuildRoutesHandler() *gin.Engine {
 	r.GET("/health", handlers.HealthHandler)
 	r.POST("/groups/:group_id/user/:user_id/subscribe", handlers.SubscribeUserToGroupHandler)
 
+	// OAuth routes
+	oauthRoutes := r.Group("/oauth")
+
+	oauthRoutes.GET("/initialize", handlers.InitalizeOAuthSignIn)
+	oauthRoutes.GET("/callback", handlers.HandleOAuthCallBack)
+
+	// All other API routes should be mounted on this route group
+	apiRoutes := r.Group("/api")
+
+	// mount the API routes auth middleware
+	apiRoutes.Use(AuthMiddleware())
+
+	// User routes
+	apiRoutes.GET("/users/:id", handlers.GetUserById)
+	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+
 	return r
 }
