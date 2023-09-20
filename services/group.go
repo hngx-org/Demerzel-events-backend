@@ -68,12 +68,14 @@ func UpdateGroupService(
 	return http.StatusOK, group, nil
 }
 
+// query filter struct
 type Filter struct {
 	Search struct {
 		Name string
 	}
 }
 
+// get groups
 func ListGroups(f Filter) ([]models.Group, error) {
 	var err error
 	groups := make([]models.Group, 0)
