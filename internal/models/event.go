@@ -104,11 +104,6 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 func ListEvents(tx *gorm.DB) ([]Event, error) {
 	var events []Event
 
-	// Your database query to retrieve all events and sort them.
-	// This query depends on your database structure and ORM (GORM in this case).
-	// You can use the Order method to sort the results.
-
-	// Example: Query all events and sort them by start date and start time using GORM.
 	err := tx.Order("start_date, start_time").Find(&events).Error
 
 	if err != nil {

@@ -35,12 +35,11 @@ func CreateEventHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"Event Created": createdEvent})
 
 }
-func ListEventsHandler(c *gin.Context) {
-	// Your logic to fetch all events from the database or wherever they are stored.
-	// This should include all events for everyone.
 
-	// Example: Fetch all events and sort them by start date and start time using the models package.
-	events, err := models.ListEvents(db.DB) // Assuming db.DB is your database connection.
+// list all events
+func ListEventsHandler(c *gin.Context) {
+
+	events, err := models.ListEvents(db.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
