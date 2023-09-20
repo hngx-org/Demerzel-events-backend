@@ -101,18 +101,20 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 }
 
 // retrieve an event using its ID
-func GetEventByID(tx *gorm.DB, eventID string) (*Event, error){
+func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
-	err := tx.Where("id = ?",eventID).First(&event).Error
+	err := tx.Where("id = ?", eventID).First(&event).Error
 
-	if err != nil{
+	if err != nil {
+		// if the event with the specified id was not found
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+
+		}
 		return nil, err
 	}
 
-	return &event,nil
-
-
-
+	return &event, nil
 
 }
