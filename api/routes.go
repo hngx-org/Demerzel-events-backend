@@ -23,6 +23,7 @@ func BuildRoutesHandler() *gin.Engine {
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
 
+
 	oauthRoutes.GET("/initialize", handlers.InitalizeOAuthSignIn)
 	oauthRoutes.GET("/callback", handlers.HandleOAuthCallBack)
 
