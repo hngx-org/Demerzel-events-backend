@@ -57,3 +57,15 @@ func UpdateUserById(user *models.User, data types.UserUpdatables) error {
 	}
 	return nil
 }
+
+func GetAllLoggedInUsers() ([]models.User,error){
+	var users []models.User
+	result := db.DB.Find(&users)
+	if result.Error != nil {
+		
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	return users, nil
+	
+}
