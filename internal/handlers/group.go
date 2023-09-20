@@ -1,15 +1,14 @@
 package handlers
 
 import (
+	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"net/http"
-	"time"
-
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-func CreateGroup(ctx *gin.Context, db *gorm.DB) {
+func CreateGroup(ctx *gin.Context) {
+	db := db.DB
 	var requestBody struct {
 		Name string `json:"name" binding:"required"`
 	}
@@ -20,8 +19,6 @@ func CreateGroup(ctx *gin.Context, db *gorm.DB) {
 	}
 
 	var newGroup models.Group
-	newGroup.CreatedAt = time.Now()
-	newGroup.UpdatedAt = time.Now()
 	newGroup.Name = requestBody.Name
 
 	db.Create(&newGroup)
