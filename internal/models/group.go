@@ -1,9 +1,10 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Group struct {
@@ -32,4 +33,12 @@ func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 	uG.Id = uuid.NewString()
 
 	return nil
+}
+
+type Comment struct {
+	Author    string    `json:"author" gorm:"primaryKey;type:varchar(500)"`
+	Content   string    `json:"content" gorm:"type:text"`
+	Post_id   string    `json:"post_id" gorm:"foreignkey:PostID;type:varchar(250)"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
