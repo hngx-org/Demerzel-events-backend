@@ -6,6 +6,7 @@ import (
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -47,7 +48,7 @@ func HandleOAuthCallBack(c *gin.Context) {
 // Set the ID to update the existing user.
 	newUser.Id = existingUser.Id
 
-        if err := services.UpdateUserByEmail(newUser); err != nil {
+        if err := services.UpdateUserByID(newUser); err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating user"})
             return
         }
@@ -70,7 +71,7 @@ func HandleGetUserID(c *gin.Context) {
 	}
 	user, err := services.GetUserFromDB(userID)
 
-	user, err := services.GetUserByEmail(userInfo.Email)
+	//user, err := services.GetUserByEmail(userInfo.Email)
 
 	if err != nil {
 		response.Error(c, "An error occurred during authentication")
@@ -115,7 +116,7 @@ func HandleUpdateUser(c *gin.Context) {
 
 	// Create new user if user does not exist
 	if user == nil {
-		newUser := models.NewUser(userInfo.Name, userInfo.Email, userInfo.Picture)
+		newUser := models.NewUser(user.Name, user.Email, user.Avatar)
 		if user, err = services.CreateUser(newUser); err != nil {
 			response.Error(c, "An error occurred while creating account")
 			return

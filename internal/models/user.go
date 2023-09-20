@@ -13,15 +13,11 @@ type User struct {
 
 
 
-    Name         string `gorm:"column:name" json:"name"`
-    Email        string `gorm:"column:email;unique" json:"email"`
-    Avatar       string `gorm:"column:avatar" json:"avatar"`
+   
     // AccessToken  string `gorm:"column:access_token" json:"access_token"`
 	// RefreshToken string `gorm:"column:refresh_token" json:"refresh_token"` 
     // Events Relationship
-    Events           []Event     `gorm:"foreignKey:Creator"`
-    InterestedEvents []Event     `gorm:"many2many:interested_events;"`
-    UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+    
 
 	     
 	// Events Relationship
