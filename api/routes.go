@@ -20,6 +20,7 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
+	r.POST("/event", handlers.CreateEventHandler)
 	r.GET("/events", handlers.ListEventsHandler)
 
 	return r
