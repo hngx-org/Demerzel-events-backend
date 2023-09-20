@@ -10,7 +10,7 @@ type User struct {
 	// Add user fields
 
 	// Events Relationship
-	Events           []Event     `gorm:"foreignKey:Creator"`
+	Events           []Event     `gorm:"foreignKey:CreatorId"`
 	InterestedEvents []Event     `gorm:"many2many:interested_events;"`
 	UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
 }
