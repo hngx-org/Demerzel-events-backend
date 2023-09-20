@@ -37,7 +37,7 @@ func CreateEventHandler(c *gin.Context) {
 
 func GetEventHandler(c *gin.Context) {
 
-	eventID := c.Param("id")
+	eventID := c.Param("eventid")
 
 	if eventID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
