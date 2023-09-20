@@ -34,7 +34,7 @@ type Event struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 
-	Creator User `gorm:"foreignKey:Creator"`
+	Creator User `gorm:"foreignKey:CreatorId"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
