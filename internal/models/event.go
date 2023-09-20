@@ -3,21 +3,33 @@ package models
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
+type NewEvent struct {
+	Creator     string `json:"creator" gorm:"type:varchar(255)"`
+	Location    string `json:"location"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+
 type Event struct {
-	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Creator     string    `json:"creator" gorm:"type:varchar(255)"`
-	Location    string    `json:"location"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Id          string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Creator     string `json:"creator" gorm:"type:varchar(255)"`
+	Location    string `json:"location"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 
 	EventCreator User `gorm:"foreignKey:Creator"`
 }
