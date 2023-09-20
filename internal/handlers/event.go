@@ -45,5 +45,10 @@ func ListEventsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, events)
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data": map[string]interface{}{
+			"events": events,
+		},
+	})
 }
