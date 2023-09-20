@@ -1,9 +1,12 @@
-package user
+package services
 
 import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SignUpUser(user models.User) (models.UserResponse, string, int, error) {
@@ -18,17 +21,6 @@ func SignUpUser(user models.User) (models.UserResponse, string, int, error) {
 	return models.UserResponse{}, "successfully created user", 0, nil
 }
 
-// func LoginUser(userLoginObject models.UserLogin) (models.UserResponse, string, int, error) {
-// 	_, err := getUserFromDB(userLoginObject.Email)
-// 	if err != nil {
-// 		return models.UserResponse{}, "user does not exist", 404, err
-// 	}
-
-// 	// logic to login user
-
-// 	return models.UserResponse{}, "", 0, nil
-// }
-
 func getUserFromDB(email string) (models.User, error) {
 	
 	// get user from db
@@ -38,4 +30,28 @@ func getUserFromDB(email string) (models.User, error) {
         return models.User{}, err
     }
 	return user, nil
+}
+
+func UpdateUser(user *models.User, id string, c *gin.Context, RequestBody models.UserUpdate) {
+	// Get the user by ID
+	if err := db.DB.First(&user, id).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "error: cannot find user",
+			"status": "error",
+		})
+		return
+	}
+
+	// Update the user's information
+	user.Name = RequestBody.Name
+	user.Email = RequestBody.Avatar
+
+	// Save the updated user to the database
+	if err := db.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "error: could not save user to database",
+			"status": "error",
+		})
+		return
+	}
 }
