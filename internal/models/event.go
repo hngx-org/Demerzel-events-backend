@@ -1,6 +1,8 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -70,4 +72,38 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 	gE.Id = uuid.NewString()
 
 	return nil
+}
+
+// func FindUserById(id string, tx *gorm.DB) (User, error) {
+// 	var user User
+// 	err := tx.Find(&user, "id = ?", id)
+// 	if err.Error != nil {
+// 		return User{}, err.Error
+// 	}
+// 	return user, nil
+// }
+
+func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
+
+	request := Event{
+		Creator:     event.Creator,
+		Title:       event.Title,
+		Description: event.Description,
+		Location:    event.Location,
+		StartDate:   event.StartDate,
+		EndDate:     event.EndDate,
+		StartTime:   event.StartTime,
+		EndTime:     event.EndTime,
+	}
+
+	err := tx.Model(Event{}).Create(&request)
+
+	fmt.Print(event)
+
+	if err.Error != nil {
+		fmt.Print(err)
+
+		return &Event{}, err.Error
+	}
+	return &request, nil
 }
