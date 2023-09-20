@@ -11,7 +11,7 @@ import (
 
 func GroupEvent(c *gin.Context) {
 
-	id := c.Param("id")
+	//id := c.Param("id")
 	//group, err := models.Group.Get(id)
 	// if err != nil{
 
@@ -24,14 +24,25 @@ func GroupEvent(c *gin.Context) {
     //result, err := group.GetGroupEvent(db.DB)
 
 	//this is for testing
+	id := c.Param("id")
+
+	if id == "" {
+			c.JSON(400, gin.H{
+			"status":  "Bad request",
+			"message": "Invalid group",
+		})
+		return
+	}
+
     group := models.Group{
         Id: id,	
 	}
 
-	result:= group.GetGroupEvent(db.DB)	
-	
+	result:= group.GetGroupEvent(db.DB)
+
 		c.JSON(200, gin.H{
 			"status":  "success",
 			"message": result,
-		})	
+		})
+		
 }
