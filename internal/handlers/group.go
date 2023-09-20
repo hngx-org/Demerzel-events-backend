@@ -80,3 +80,15 @@ func UpdateGroup(c *gin.Context) {
 		"data":    data,
 	})
 }
+
+// GetUserGroups returns all group this user belongs to
+func GetUserGroups(c *gin.Context) {
+
+	userGroup, err := services.GetGroupsByUserId(c.Param("id"))
+	if err != nil {
+		response.Error(c, err.Error())
+		return
+	}
+	response.Success(c, "Fetched all groups", userGroup)
+	return
+}
