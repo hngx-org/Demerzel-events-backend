@@ -2,9 +2,10 @@ package api
 
 import (
 	"demerzel-events/internal/handlers"
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
 func BuildRoutesHandler() *gin.Engine {
@@ -34,6 +35,7 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// Group routes
 	apiRoutes.POST("/groups", handlers.CreateGroup)
+	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
 
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
