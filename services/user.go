@@ -5,6 +5,7 @@ import (
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/types"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -24,8 +25,9 @@ func GetUserByEmail(email string) (*models.User, error) {
 
 func GetUserById(id string) (*models.User, error) {
 	var user models.User
+	fmt.Printf("user id %s", id)
 
-	result := db.DB.Find(&user, id)
+	result := db.DB.Where("id = ?", id).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil when the user is not found
