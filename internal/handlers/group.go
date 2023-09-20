@@ -6,6 +6,7 @@ import (
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -27,6 +28,26 @@ func CreateGroup(ctx *gin.Context) {
 	services.CreateGroup(&newGroup)
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "", "data": newGroup})
+}
+
+func SubscribeUserToGroup(c *gin.Context) {
+	groupID := c.Param("id")
+	userID := c.Param("user_id")
+
+	userGroupInstance := models.UserGroup{
+		UserID: userID,
+		GroupID: groupID,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	result := db.DB.Create(&userGroupInstance)
+	if result.Error != nil {
+		response.Error(c, "Failed to subscribe user to group")
+		return
+	}
+
+	response.Success(c, "User successfully subscribed to group", userGroupInstance)
 }
 
 func UnsubscribeFromGroup(c *gin.Context) {
