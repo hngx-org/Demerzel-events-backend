@@ -10,9 +10,9 @@ type User struct {
 	// Add user fields
 
 	// Events Relationship
-	Events           []Event           `gorm:"foreignKey:Creator"`
-	InterestedEvents []InterestedEvent `gorm:"many2many:interested_events;"`
-	UserGroup        []UserGroup       `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+	Events           []Event     `gorm:"foreignKey:Creator"`
+	InterestedEvents []Event     `gorm:"many2many:interested_events;"`
+	UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
