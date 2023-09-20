@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/services"
 	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
-	db := db.DB
 	var requestBody struct {
 		Name string `json:"name" binding:"required"`
 	}
@@ -21,7 +21,7 @@ func CreateGroup(ctx *gin.Context) {
 	var newGroup models.Group
 	newGroup.Name = requestBody.Name
 
-	db.Create(&newGroup)
+	services.CreateGroup(&newGroup)
 
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "", "data": newGroup})
 }
