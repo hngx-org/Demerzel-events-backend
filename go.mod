@@ -3,6 +3,19 @@ module demerzel-events
 go 1.19
 
 require (
+	github.com/gin-contrib/cors v1.4.0
+	github.com/gin-gonic/gin v1.9.1
+	github.com/google/uuid v1.3.1
+	github.com/joho/godotenv v1.5.1
+	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/oauth2 v0.12.0
+	gorm.io/driver/mysql v1.5.1
+	gorm.io/gorm v1.25.4
+)
+
+require (
+	cloud.google.com/go/compute v1.20.1 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/bytedance/sonic v1.10.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
@@ -13,6 +26,7 @@ require (
 	github.com/go-playground/validator/v10 v10.15.4 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -27,7 +41,6 @@ require (
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
-	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

@@ -19,7 +19,9 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
+	// user routes
 	r.GET("/api/users/profile/:id")
+	r.PUT("/api/users/profile/:id", handlers.UpdateUserProfile)
 
 	// OAuth routes
 	authRoute := r.Group("/oauth")

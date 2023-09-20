@@ -4,8 +4,6 @@ import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
-	"fmt"
-	"net/http"
 )
 
 func SignUpUser(user models.User) (models.UserResponse, string, int, error) {
@@ -20,38 +18,16 @@ func SignUpUser(user models.User) (models.UserResponse, string, int, error) {
 	return models.UserResponse{}, "successfully created user", 0, nil
 }
 
-func LoginUser(userLoginObject models.UserLogin) (models.UserResponse, string, int, error) {
-	_, err := getUserFromDB(userLoginObject.Email)
-	if err != nil {
-		return models.UserResponse{}, "user does not exist", 404, err
-	}
+// func LoginUser(userLoginObject models.UserLogin) (models.UserResponse, string, int, error) {
+// 	_, err := getUserFromDB(userLoginObject.Email)
+// 	if err != nil {
+// 		return models.UserResponse{}, "user does not exist", 404, err
+// 	}
 
-	// logic to login user
+// 	// logic to login user
 
-	return models.UserResponse{}, "", 0, nil
-}
-
-func ResetPassword(reqBody models.PasswordReset) (int, error) {
-	_, err := getUserFromDB(reqBody.Email)
-	if err != nil {
-		return 404, fmt.Errorf("user does not exist: %s", err.Error())
-	}
-
-	// logic to reset password
-
-	return 0, nil
-}
-
-func ForgotPassword(reqBody models.ForgotPassword) (int, error) {
-	_, err := getUserFromDB(reqBody.Email)
-	if err != nil {
-		return 404, fmt.Errorf("user does not exist: %s", err.Error())
-	}
-
-	// logic to reset password
-
-	return http.StatusOK, nil
-}
+// 	return models.UserResponse{}, "", 0, nil
+// }
 
 func getUserFromDB(email string) (models.User, error) {
 	
@@ -62,17 +38,4 @@ func getUserFromDB(email string) (models.User, error) {
         return models.User{}, err
     }
 	return user, nil
-}
-
-
-func UpdateUserService(user models.UpdateUser, userId interface{}) (int, error) {
-	return 0, nil
-}
-
-
-func CheckPasswords() error {
-	
-	// logic check password
-
-	return errors.New("")
 }
