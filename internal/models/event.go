@@ -1,61 +1,69 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Event struct {
-	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Title       string    `json:"title"`
+	ID          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Title       string    `json:"title" gorm:"not null"`
 	Description string    `json:"description"`
 	Creator     string    `json:"creator" gorm:"type:varchar(255)"`
 	Location    string    `json:"location"`
+	OrganizerID uint      `json:"organizer_id"`
+	ImageURL    string    `json:"image_url"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 
 	EventCreator User `gorm:"foreignKey:Creator"`
+	Groups       []Group `gorm:"many2many:group_events;"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
-	e.Id = uuid.NewString()
-
+	e.ID = uuid.NewString()
 	return nil
 }
 
 type InterestedEvent struct {
 	gorm.Model
-	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	UserId  string `json:"user_id" gorm:"type:varchar(255)"`
-	EventId string `json:"event_id" gorm:"type:varchar(255)"`
+	ID          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	UserID      string    `json:"user_id" gorm:"type:varchar(255)"`
+	EventID     string    `json:"event_id" gorm:"type:varchar(255)"`
+	Title       string    `json:"title" gorm:"not null"`
+	Description string    `json:"description"`
+	Location    string    `json:"location"`
+	OrganizerID uint      `json:"organizer_id"`
+	StartDate   time.Time `json:"start_date"`
 
-	User  User  `gorm:"foreignKey:UserId"`
-	Event Event `gorm:"foreignKey:EventId"`
+	User  User  `gorm:"foreignKey:UserID"`
+	Event Event `gorm:"foreignKey:EventID"`
 }
 
 func (iE *InterestedEvent) BeforeCreate(tx *gorm.DB) error {
-	iE.Id = uuid.NewString()
-
+	iE.ID = uuid.NewString()
 	return nil
 }
 
 type GroupEvent struct {
 	gorm.Model
-	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	GroupId string `json:"group_id" gorm:"type:varchar(255)"`
-	EventId string `json:"event_id" gorm:"type:varchar(255)"`
+	ID       string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	GroupID  string    `json:"group_id" gorm:"type:varchar(255)"`
+	EventID  string    `json:"event_id" gorm:"type:varchar(255)"`
+	Location string    `json:"location"`
+	OrganizerID uint    `json:"organizer_id"`
+	ImageURL string    `json:"image_url"`
+	StartDate time.Time `json:"start_date"`
 
-	Group Group `gorm:"foreignKey:GroupId"`
-	Event Event `gorm:"foreignKey:EventId"`
+	Group Group `gorm:"foreignKey:GroupID"`
+	Event Event `gorm:"foreignKey:EventID"`
 }
 
 func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
-	gE.Id = uuid.NewString()
-
+	gE.ID = uuid.NewString()
 	return nil
 }

@@ -1,17 +1,25 @@
 package configs
 
 import (
-	"demerzel-events/internal/db"
-	"github.com/joho/godotenv"
+    "github.com/joho/godotenv"
+    "os"
 )
 
-func Load() {
-	// Load env variables
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
+func LoadConfig(filePath string) error {
+    if filePath != "" {
+        err := godotenv.Load(filePath)
+        if err != nil {
+            return err
+        }
+    } else {
+        err := godotenv.Load()
+        if err != nil {
+            return err
+        }
+    }
 
-	// Setup database connection
-	db.SetupDB()
+    return nil
+}
+func GetEnv(key string) string {
+    return os.Getenv(key)
 }

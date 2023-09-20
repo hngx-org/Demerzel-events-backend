@@ -6,17 +6,24 @@ import (
 )
 
 type User struct {
-	Id string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	// Add user fields
+	ID       string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Username string `json:"username" gorm:"not null"`
+	Email    string `json:"email" gorm:"not null;unique"`
+	Password string `json:"-" gorm:"not null"`
 
-	// Events Relationship
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+
 	Events           []Event     `gorm:"foreignKey:Creator"`
 	InterestedEvents []Event     `gorm:"many2many:interested_events;"`
-	UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+	UserGroups       []UserGroup `json:"user_groups" gorm:"many2many:user_groups;"`
+
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
-	u.Id = uuid.NewString()
-
+	u.ID = uuid.NewString()
 	return nil
 }
+
