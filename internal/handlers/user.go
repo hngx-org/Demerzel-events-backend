@@ -53,12 +53,14 @@ func GetUserById(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", map[string]any{"user": user})
 }
-func GetUsers(c *gin.Context){
+
+func GetUsers(c *gin.Context) {
 
 	users, err := services.GetUsers()
 	if err != nil {
-		response.Error(c, "error: unable to retrieve users")
+		response.Error(c, http.StatusInternalServerError, "An error occurred while retrieving users")
 		return
 	}
-	response.Success(c, "Users Retrieved Successfully",map[string]any{"user": users})
+
+	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{"user": users})
 }
