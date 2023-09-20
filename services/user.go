@@ -13,6 +13,7 @@ import (
 func GetUserFromDB(id string) (*models.UserData, error) {
 	
 	// get user from db
+
 	var user models.UserData
 	result := db.DB.Where("id = ?", id).First(&user)
 	
@@ -21,6 +22,7 @@ func GetUserFromDB(id string) (*models.UserData, error) {
             return nil, nil // Return nil when the user is not found
         }
         return nil ,result.Error // Return the actual error for other errors
+
     }
 
     return &user, nil
@@ -65,4 +67,7 @@ func UpdateUserByEmail(user *models.UserData) error {
     }
     return nil
 }
+
+
+
 
