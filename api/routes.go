@@ -24,5 +24,23 @@ func BuildRoutesHandler() *gin.Engine {
 
 	routes.CommentRoutes(r)
 
+	// OAuth routes
+	oauthRoutes := r.Group("/oauth")
+
+	oauthRoutes.GET("/initialize", handlers.InitalizeOAuthSignIn)
+	oauthRoutes.GET("/callback", handlers.HandleOAuthCallBack)
+
+	// All other API routes should be mounted on this route group
+	apiRoutes := r.Group("/api")
+
+	// mount the API routes auth middleware
+	apiRoutes.Use(AuthMiddleware())
+
+	// User routes
+	apiRoutes.GET("/users/:id", handlers.GetUserById)
+	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+	apiRoutes.PUT("/users/:id", handlers.UpdateComment)
+
+
 	return r
 }
