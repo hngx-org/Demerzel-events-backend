@@ -19,6 +19,7 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
+	r.POST("/groups/:group_id/user/:user_id/subscribe", handlers.SubscribeUserToGroupHandler)
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
