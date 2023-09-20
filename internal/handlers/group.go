@@ -23,7 +23,20 @@ func (h *Group) List(c *gin.Context) {
 		c.JSON(500, map[string]string{
 			"detail": "internal server error",
 		})
+		return
 	}
 
-	c.JSON(http.StatusOK, groups)
+	var message string
+
+	if len(groups) == 0 {
+		message = "no groups"
+	} else {
+		message = "Group(s) successfully fetched"
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": message,
+		"data":    groups,
+	})
 }
