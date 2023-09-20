@@ -45,3 +45,12 @@ func GetUserById(c *gin.Context) {
 
 	response.Success(c, "User retrieved successfully", map[string]any{"user": user})
 }
+func GetUsers(c *gin.Context){
+
+	users, err := services.GetUsers()
+	if err != nil {
+		response.Error(c, "error: unable to retrieve users")
+		return
+	}
+	response.Success(c, "Users Retrieved Successfully",map[string]any{"user": users})
+}
