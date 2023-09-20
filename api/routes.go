@@ -21,6 +21,7 @@ func BuildRoutesHandler() *gin.Engine {
 
 	r.GET("/health", handlers.HealthHandler)
 	r.POST("/events", handlers.CreateEventHandler)
+	r.GET("/events/:id",handlers.GetEventHandler)
 
 	return r
 }
