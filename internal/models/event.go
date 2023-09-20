@@ -8,7 +8,7 @@ import (
 )
 
 type NewEvent struct {
-	Creator     string `json:"creator" gorm:"type:varchar(255)"`
+	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
 	Location    string `json:"location"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -22,7 +22,8 @@ type NewEvent struct {
 
 type Event struct {
 	Id          string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Creator     string `json:"creator" gorm:"type:varchar(255)"`
+	CreatorId   string `json:"creator_id" gorm:"type:varchar(255)"`
+	Thumbnail   string `json:"thumbnail"`
 	Location    string `json:"location"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
@@ -33,7 +34,7 @@ type Event struct {
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
 
-	EventCreator User `gorm:"foreignKey:Creator"`
+	Creator User `gorm:"foreignKey:Creator"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -74,19 +75,10 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// func FindUserById(id string, tx *gorm.DB) (User, error) {
-// 	var user User
-// 	err := tx.Find(&user, "id = ?", id)
-// 	if err.Error != nil {
-// 		return User{}, err.Error
-// 	}
-// 	return user, nil
-// }
-
 func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 
 	request := Event{
-		Creator:     event.Creator,
+		CreatorId:   event.CreatorId,
 		Title:       event.Title,
 		Description: event.Description,
 		Location:    event.Location,
