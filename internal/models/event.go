@@ -1,25 +1,40 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"time"
 )
 
-type Event struct {
-	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Creator     string    `json:"creator" gorm:"type:varchar(255)"`
-	Location    string    `json:"location"`
-	StartDate   time.Time `json:"start_date"`
-	EndDate     time.Time `json:"end_date"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+type NewEvent struct {
+	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
+	Location    string `json:"location"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
 
-	EventCreator User `gorm:"foreignKey:Creator"`
+type Event struct {
+	Id          string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	CreatorId   string `json:"creator_id" gorm:"type:varchar(255)"`
+	Thumbnail   string `json:"thumbnail"`
+	Location    string `json:"location"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+
+	Creator User `gorm:"foreignKey:CreatorId"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -66,4 +81,28 @@ func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event){
 	tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.event_id = ?", group.Id).Scan(&events)
     
 	return &events
+}
+func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
+
+	request := Event{
+		CreatorId:   event.CreatorId,
+		Title:       event.Title,
+		Description: event.Description,
+		Location:    event.Location,
+		StartDate:   event.StartDate,
+		EndDate:     event.EndDate,
+		StartTime:   event.StartTime,
+		EndTime:     event.EndTime,
+	}
+
+	err := tx.Model(Event{}).Create(&request)
+
+	fmt.Print(event)
+
+	if err.Error != nil {
+		fmt.Print(err)
+
+		return &Event{}, err.Error
+	}
+	return &request, nil
 }
