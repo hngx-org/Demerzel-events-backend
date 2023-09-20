@@ -12,7 +12,7 @@ import (
 var oauth2State = "somerandomoauthstri"
 
 func InitalizeOAuthSignIn(c *gin.Context) {
-	// Let generate a random string 
+	// Let generate a random string
 	oauth2state := uuid.New().String
 
 	oauthConfig := oauth.OauthConfig()
@@ -30,17 +30,16 @@ func HandleOAuthCallBack(c *gin.Context) {
 
 	// Let retrieve the stored state from the session
 	storedState := c.Session.Get("oauth2_state")
-	
+
 	// let do some checking
 	if state != storedState {
 		c.Json(http.StatusUnathorized, g.H{
 			"message": "Invalid state",
-			"status": "error",
+			"status":  "error",
 		})
 		return
 	}
 
-	
 	userInfo, err := services.OAuthCallback(services.NewOAuthCallbackParams(c, code, state))
 	if err != nil {
 		c.JSON(500, gin.H{
