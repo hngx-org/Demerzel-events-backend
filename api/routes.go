@@ -2,9 +2,10 @@ package api
 
 import (
 	"demerzel-events/internal/handlers"
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
 func BuildRoutesHandler() *gin.Engine {
@@ -19,6 +20,7 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
+	r.GET("/events", handlers.ListEventsHandler)
 
 	return r
 }
