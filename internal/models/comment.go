@@ -7,7 +7,7 @@ import (
 )
 
 type Comment struct {
-	Id        uuid.UUID `json:"id" gorm:"type:uuid;default:uuid_generate_v4()"`
+	Id        uuid.UUID `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	Body      string    `json:"body"`
 	UserId    string    `json:"user_id"`
 	EventId   string    `json:"event_id"`
@@ -17,7 +17,7 @@ type Comment struct {
 }
 
 type Image struct {
-	Id        uuid.UUID `json:"id" gorm:"uuid;default:uuid_generate_v4()"`
+	Id        uuid.UUID `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	CommentId string    `json:"comment_id"`
 	ImageUrl  string    `json:"image_url"`
 }
