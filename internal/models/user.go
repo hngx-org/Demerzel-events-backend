@@ -32,12 +32,12 @@ type UserResponse struct {
 }
 
 type UserData struct {
+    Id string `json:"id" gorm:"primaryKey;type:varchar(255)"`
     Name   string `json:"name"`
     Email  string `json:"email"`
     Avatar string `json:"avatar"`
 }
 type UpdateUserStruct struct {
-    Id string `json:"id" gorm:"primaryKey;type:varchar(255)"`
     Name   string `json:"name"`
     Email  string `json:"email"`
 }

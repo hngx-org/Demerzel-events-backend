@@ -42,11 +42,15 @@ func HandleOAuthCallBack(c *gin.Context) {
         return
     }
 	newUser := &models.UserData{
+		Id: userInfo.Sub,
         Email: userInfo.Email,
         Name:  userInfo.Name,
+		Avatar: userInfo.Picture,
     }
 	if existingUser != nil {
 // Set the ID to update the existing user.
+	newUser.Id = existingUser.Id
+
         if err := services.UpdateUserByEmail(newUser); err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating user"})
             return
@@ -61,15 +65,14 @@ func HandleOAuthCallBack(c *gin.Context) {
 }
 
 func HandleGetUserID(c *gin.Context) {
-	id := c.DefaultQuery("id", "")
-	if id == "" {
+	userID := c.Param("id")
+	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid ID",
 		})
 
 	}
-	var user models.User
-	user, err := services.GetUserFromDB(id)
+	user, err := services.GetUserFromDB(userID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"message": "Invalid ID",
@@ -81,17 +84,34 @@ func HandleGetUserID(c *gin.Context) {
 }
 
 func HandleUpdateUser(c *gin.Context) {
-	var UpdateUserStruct models.UpdateUserStruct
-	if err := c.ShouldBindJSON(&UpdateUserStruct); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"err": err.Error(),
-		})
-	}
-	if err := services.UpdateUser(UpdateUserStruct); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error Updating the User",
-		})
-	}
+	userID := c.Param("id")
+	user, err := services.GetUserFromDB(userID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching user"})
+        return
+    }
 
-	c.JSON(http.StatusOK, gin.H{"message": "User Have Been Updated Successfully"})
+    if user == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        return
+    }
+	var updatedUser models.UpdateUserStruct
+    if err := c.ShouldBindJSON(&updatedUser); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+        return
+    }
+
+    // Update the user's data
+    user.Email = updatedUser.Email
+    user.Name = updatedUser.Name
+
+    // Save the updated user
+    if err := services.UpdateUserByID(user); err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating user"})
+        return
+    }
+
+    // Return the updated user as JSON
+    c.JSON(http.StatusOK, user)
+
 }
