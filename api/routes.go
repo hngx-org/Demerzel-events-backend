@@ -1,10 +1,13 @@
 package api
 
 import (
-	"demerzel-events/internal/handlers"
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"os"
+
+	"demerzel-events/internal/handlers"
+	"demerzel-events/services"
 )
 
 func BuildRoutesHandler() *gin.Engine {
@@ -19,6 +22,14 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
+
+	// init group service
+	groupService := services.NewGroupService()
+	// create group hanlder
+	groupHandler := handlers.Group{
+		Service: groupService,
+	}
+	r.GET("/groups", groupHandler.List)
 
 	return r
 }
