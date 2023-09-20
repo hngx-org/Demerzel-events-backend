@@ -10,7 +10,6 @@ import (
 
 func SubscribeUserToGroupHandler(c *gin.Context) {
 	type UserGroup struct {
-		Id        string `json:"id"`
 		UserID    string `json:"user_id"`
 		GroupID   string `json:"group_id"`
 		CreatedAt time.Time `json:"created_at"`
@@ -21,7 +20,6 @@ func SubscribeUserToGroupHandler(c *gin.Context) {
 	userID := c.Param("user_id")
 
 	userGroupInstance := UserGroup{
-		Id: "",
 		UserID: string(userID),
 		GroupID: string(groupID),
 		CreatedAt: time.Now(),
@@ -38,7 +36,7 @@ func SubscribeUserToGroupHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{
+	c.JSON(201, gin.H{
 		"status":  "success",
 		"message": "User successfully subscribed to group",
 		"data": userGroupInstance,
