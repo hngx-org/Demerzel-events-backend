@@ -4,22 +4,16 @@ import (
 	"time"
 
 	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SubscribeUserToGroupHandler(c *gin.Context) {
-	type UserGroup struct {
-		UserID    string `json:"user_id"`
-		GroupID   string `json:"group_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-	}
-
 	groupID := c.Param("group_id")
 	userID := c.Param("user_id")
 
-	userGroupInstance := UserGroup{
+	userGroupInstance := models.UserGroup{
 		UserID: string(userID),
 		GroupID: string(groupID),
 		CreatedAt: time.Now(),
