@@ -1,9 +1,10 @@
 package oauth
 
 import (
+	"os"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-	"os"
 )
 
 func OauthConfig() oauth2.Config {
@@ -13,5 +14,6 @@ func OauthConfig() oauth2.Config {
 		RedirectURL:  os.Getenv("GOOGLE_CALLBACK_URL"),
 		Scopes:       []string{"openid", "profile", "email"},
 		Endpoint:     google.Endpoint,
-	}
+	} 
+
 }
