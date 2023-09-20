@@ -34,3 +34,28 @@ func CreateEventHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"Event Created": createdEvent})
 
 }
+
+func GetEventHandler(c *gin.Context) {
+
+	eventID := c.Param("id")
+
+	if eventID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+		return
+	}
+
+	event,err := models.GetEventByID(db.DB,eventID)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving event"})
+        return
+	}
+ 
+
+	if event == nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+        return
+    }
+
+	c.JSON(http.StatusOK,event)
+}
