@@ -2,31 +2,46 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
+	"demerzel-events/pkg/types"
 	"demerzel-events/services"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
-func UpdateUserProfile(c *gin.Context){
-	id := c.Param("id")
-	if id == "" {
-		c.JSON(500, gin.H{
-			"message": "error: parameter parsed is not int",
-			"status":  "error",
-		})
-	}
-
-	var RequestBody models.UserUpdate
-	if err := c.ShouldBindJSON(&RequestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "error: invalid json body format",
-			"status": "error",
-		})
+func UpdateUser(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, "error: unable to retrieve user from context")
 		return
 	}
 
-	var user models.User
+	user, ok := rawUser.(models.User)
+	if !ok {
+		response.Error(c, "error: invalid user type in context")
+		return
+	}
 
-	services.UpdateUser(&user, id, c, RequestBody)
+	var updateData types.UserUpdatables
+	if err := c.ShouldBindJSON(&updateData); err != nil {
+		response.Error(c, "error: invalid json body format")
+		return
+	}
+
+	services.UpdateUserById(&user, updateData)
+}
+
+func GetUserById(c *gin.Context) {
+	id := c.DefaultQuery("id", "")
+	if id == "" {
+		response.Error(c, "error: user id cannot be empty")
+		return
+	}
+
+	user, err := services.GetUserById(id)
+	if err != nil {
+		response.Error(c, "error: unable to retrieve user")
+		return
+	}
+
+	response.Success(c, "User retrieved successfully", map[string]any{"user": user})
 }
