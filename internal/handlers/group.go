@@ -127,7 +127,7 @@ func UpdateGroup(c *gin.Context) {
 	response.Success(c, code, "Group updated successfully", data)
 }
 
-// List all groups
+
 func ListGroups(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 
@@ -156,4 +156,27 @@ func ListGroups(c *gin.Context) {
 	response.Success(c, http.StatusOK, message, map[string]any{
 		"groups": groups,
 	})
+
+// GetUserGroups returns all group this user belongs to
+func GetUserGroups(c *gin.Context) {
+
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
+	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }

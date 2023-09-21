@@ -109,6 +109,7 @@ func UpdateGroupService(
 	return http.StatusOK, group, nil
 }
 
+
 // query filter struct
 type Filter struct {
 	Search struct {
@@ -138,4 +139,21 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	}
 
 	return groups, nil
+
+func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
+	if _, err := GetUserById(userId); err != nil {
+		return nil, http.StatusNotFound, err
+	}
+	var groups []models.Group
+	res := db.DB.
+		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
+		Where("user_groups.user_id = ?", userId).
+		Find(&groups)
+
+	if res.Error != nil {
+		return nil, http.StatusNotFound, res.Error
+	}
+	
+	return groups,http.StatusOK, nil
+
 }
