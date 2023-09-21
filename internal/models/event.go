@@ -107,12 +107,7 @@ func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 
 	err := tx.Where("id = ?", eventID).First(&event).Error
 
-	if err != nil {
-		// if the event with the specified id was not found
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-
-		}
+	if err != nil {	
 		return nil, err
 	}
 
