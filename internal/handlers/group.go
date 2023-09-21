@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
-	"demerzel-events/internal/models"
-	"demerzel-events/pkg/response"
-	"demerzel-events/services"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
+	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
+	"demerzel-events/services"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -18,7 +19,11 @@ func CreateGroup(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		response.Error(ctx, http.StatusBadRequest, fmt.Sprintf("Invalid request body format: %s", err.Error()))
+		response.Error(
+			ctx,
+			http.StatusBadRequest,
+			fmt.Sprintf("Invalid request body format: %s", err.Error()),
+		)
 		return
 	}
 
@@ -27,7 +32,12 @@ func CreateGroup(ctx *gin.Context) {
 
 	services.CreateGroup(&newGroup)
 
-	response.Success(ctx, http.StatusCreated, "Group created successfully", map[string]any{"group": newGroup})
+	response.Success(
+		ctx,
+		http.StatusCreated,
+		"Group created successfully",
+		map[string]any{"group": newGroup},
+	)
 }
 
 func SubscribeUserToGroup(c *gin.Context) {
@@ -49,7 +59,11 @@ func SubscribeUserToGroup(c *gin.Context) {
 	data, err := services.SubscribeUserToGroup(user.Id, groupID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			response.Error(c, http.StatusNotFound, "Invalid user or group ID. Please check the values and try again")
+			response.Error(
+				c,
+				http.StatusNotFound,
+				"Invalid user or group ID. Please check the values and try again",
+			)
 			return
 		} else if err.Error() == "user already exists in group" {
 			response.Error(c, http.StatusConflict, "User already subscribed to group")
@@ -77,7 +91,6 @@ func UnsubscribeFromGroup(c *gin.Context) {
 	}
 
 	err := services.DeleteUserGroup(user.Id, string(groupID))
-
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// User is not subscribed to this group, no need to unsubscribe
@@ -90,14 +103,18 @@ func UnsubscribeFromGroup(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", map[string]any{})
-
 }
+
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
 	id := c.Params.ByName("id")
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body format: %s", err.Error()))
+		response.Error(
+			c,
+			http.StatusBadRequest,
+			fmt.Sprintf("Invalid request body format: %s", err.Error()),
+		)
 		return
 	}
 
@@ -109,6 +126,36 @@ func UpdateGroup(c *gin.Context) {
 
 	response.Success(c, code, "Group updated successfully", data)
 }
+
+
+func ListGroups(c *gin.Context) {
+	name := c.DefaultQuery("name", "")
+
+	f := services.Filter{
+		Search: struct{ Name string }{
+			Name: name,
+		},
+	}
+
+	groups, err := services.ListGroups(f)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
+		return
+	}
+
+	var message string
+
+	if len(groups) == 0 {
+		message = "No groups"
+	}
+
+	if len(groups) > 0 {
+		message = "Groups retrieved successfully"
+	}
+
+	response.Success(c, http.StatusOK, message, map[string]any{
+		"groups": groups,
+	})
 
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
