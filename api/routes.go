@@ -38,11 +38,11 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
 	apiRoutes.POST("/groups/:id/unsubscribe", handlers.UnsubscribeFromGroup)
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
+	apiRoutes.GET("groups/user", handlers.GetUserGroups)
 
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
-	apiRoutes.GET("/users/:id/groups", handlers.GetUserGroups)
 
 	return r
 }

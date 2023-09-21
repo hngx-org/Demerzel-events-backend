@@ -42,7 +42,7 @@ func SubscribeUserToGroup(c *gin.Context) {
 	user, ok := rawUser.(*models.User)
 
 	if !ok {
-		response.Error(c,http.StatusConflict, "error: invalid user type in context")
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
 		return
 	}
 
@@ -113,11 +113,23 @@ func UpdateGroup(c *gin.Context) {
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
 
-	userGroup, err := services.GetGroupsByUserId(c.Param("id"))
-	if err != nil {
-		response.Error(c, err.Error())
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
 		return
 	}
-	response.Success(c, "Fetched all groups", userGroup)
-	return
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
+	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }
