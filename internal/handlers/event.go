@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,93 @@ func CreateEventHandler(c *gin.Context) {
 	}
 
 	input.CreatorId = user.Id
+
+	// Check if creator id is available
+	if input.CreatorId == "" {
+		response.Error(c, http.StatusBadRequest, "CreatorId field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.CreatorId).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "CreatorId is not a string")
+		return
+	}
+
+	// Check if description field is empty or is a string
+	if input.Description == "" {
+		response.Error(c, http.StatusBadRequest, "Desciption field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.Description).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "Description is not a string")
+		return
+	}
+
+	// Check if location field is empty or is a string
+	if input.Location == "" {
+		response.Error(c, http.StatusBadRequest, "Location field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.Location).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "Location is not a string")
+		return
+	}
+
+	// Check if title field is empty or is a string
+	if input.Title == "" {
+		response.Error(c, http.StatusBadRequest, "Title field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.Title).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "Title is not a string")
+		return
+	}
+
+	// Check if start_time field is empty or is a string
+	if input.StartTime == "" {
+		response.Error(c, http.StatusBadRequest, "StartTime field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.StartTime).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "StartTime is not a string")
+		return
+	}
+
+	// Check if end_time field is empty or is a string
+	if input.EndTime == "" {
+		response.Error(c, http.StatusBadRequest, "EndTime field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.EndTime).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "EndTime is not a string")
+		return
+	}
+
+	// Check if start_date field is empty or is a string
+	if input.StartDate == "" {
+		response.Error(c, http.StatusBadRequest, "StartDate field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.StartDate).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "StartDate is not a string")
+		return
+	}
+	// Check if end_date field is empty or is a string
+	if input.EndDate == "" {
+		response.Error(c, http.StatusBadRequest, "EndDate field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.EndDate).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "EndDate is not a string")
+		return
+	}
 
 	createdEvent, err := models.CreateEvent(db.DB, &input)
 
