@@ -3,11 +3,13 @@ package handlers
 import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -16,7 +18,7 @@ func CreateGroup(ctx *gin.Context) {
 	}
 
 	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		response.Error(ctx, http.StatusBadRequest, fmt.Sprintf("Invalid request body format: %s", err.Error()))
 		return
 	}
 
@@ -25,29 +27,111 @@ func CreateGroup(ctx *gin.Context) {
 
 	services.CreateGroup(&newGroup)
 
-	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "", "data": newGroup})
+	response.Success(ctx, http.StatusCreated, "Group created successfully", map[string]any{"group": newGroup})
 }
 
+func SubscribeUserToGroup(c *gin.Context) {
+	groupID := c.Param("id")
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	data, err := services.SubscribeUserToGroup(user.Id, groupID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.Error(c, http.StatusNotFound, "Invalid user or group ID. Please check the values and try again")
+			return
+		} else if err.Error() == "user already exists in group" {
+			response.Error(c, http.StatusConflict, "User already subscribed to group")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "Failed to subscribe user to group")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User successfully subscribed to group", data)
+}
+
+func UnsubscribeFromGroup(c *gin.Context) {
+	groupID := c.Param("id")
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	err := services.DeleteUserGroup(user.Id, string(groupID))
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// User is not subscribed to this group, no need to unsubscribe
+			response.Error(c, http.StatusNotFound, "User not subscribed to this group")
+			return
+		}
+
+		response.Error(c, http.StatusConflict, "Failed to unsubscribe user from group")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", map[string]any{})
+
+}
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
 	id := c.Params.ByName("id")
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "failed to parse request", "error": err.Error()})
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body format: %s", err.Error()))
 		return
 	}
 
 	code, data, err := services.UpdateGroupService(db.DB, req, id)
 	if err != nil {
-		c.JSON(code, gin.H{"status": code, "message": "failed to parse request", "error": err.Error()})
+		response.Error(c, code, err.Error())
 		return
 	}
 
-	c.JSON(code, gin.H{
-		"status":  "success",
-		"message": "Group Name updated successfully",
-		"data":    data,
-	})
+	response.Success(c, code, "Group updated successfully", data)
+}
+
+// GetUserGroups returns all group this user belongs to
+func GetUserGroups(c *gin.Context) {
+
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
+	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }
 
 func DeleteGroupHandler(c *gin.Context) {

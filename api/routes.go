@@ -35,7 +35,10 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// Group routes
 	apiRoutes.POST("/groups", handlers.CreateGroup)
+	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
+	apiRoutes.POST("/groups/:id/unsubscribe", handlers.UnsubscribeFromGroup)
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
+	apiRoutes.GET("groups/user", handlers.GetUserGroups)
 	apiRoutes.DELETE("/groups/:id", handlers.DeleteGroup)
 
 	// User routes
