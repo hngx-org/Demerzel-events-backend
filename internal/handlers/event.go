@@ -32,7 +32,7 @@ func GroupEventById(c *gin.Context) {
 	res := make(map[string]interface{}) 
 	res["Message"] = result
 
-		response.Success(c,200, "List of events",res)
+	response.Success(c,200, "List of events",res)
 }
 
 func CreateEventHandler(c *gin.Context) {

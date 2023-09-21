@@ -33,7 +33,7 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes := r.Group("/api")
 
 	// mount the API routes auth middleware
-	//apiRoutes.Use(AuthMiddleware())
+	apiRoutes.Use(AuthMiddleware())
 
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
