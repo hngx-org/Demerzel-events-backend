@@ -21,8 +21,6 @@ func BuildRoutesHandler() *gin.Engine {
 
 	r.GET("/health", handlers.HealthHandler)
 
-
-
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
 
@@ -35,6 +33,8 @@ func BuildRoutesHandler() *gin.Engine {
 	// mount the API routes auth middleware
 	apiRoutes.Use(AuthMiddleware())
 
+	apiRoutes.POST("/image/upload", handlers.UploadFileHandler)
+
 	// Group routes
 	apiRoutes.POST("/groups", handlers.CreateGroup)
 	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
@@ -45,15 +45,11 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
 
-
 	// Event Routes
 	eventRoutes := apiRoutes.Group("/events")
 	eventRoutes.GET("/", handlers.ListEventsHandler)
-	eventRoutes.GET("/:eventid",handlers.GetEventHandler)
+	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
-	eventRoutes.POST("/upload", handlers.UploadFileHandler)
-
-
 
 	return r
 }
