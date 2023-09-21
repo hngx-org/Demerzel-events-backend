@@ -4,6 +4,10 @@ import (
     "demerzel-events/api"
     "demerzel-events/configs"
     "demerzel-events/services"
+    "demerzel-events/internal/handlers/event_handler"
+    "demerzel-events/internal/handlers/user_handler"  
+    "demerzel-events/internal/models/event"
+    "demerzel-events/internal/models/user"
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
     "github.com/gin-gonic/gin"
@@ -13,10 +17,6 @@ import (
     "os"
     "strconv"
     "time"
-    ".../internal/handlers/event_handler"
-    ".../internal/handlers/user_handler"  
-    ".../internal/models/event"
-    ".../internal/models/user"
 )
 
 var db *gorm.DB
@@ -32,15 +32,21 @@ func main() {
     r.POST("/events", CreateEvent)
     r.GET("/events", ListEvents)
     r.GET("/events/:id", GetEventByID)
+    r.PUT("/events/:id", UpdateEvent)
+    r.DELETE("/events/:id", DeleteEvent)
+    r.POST("/users", CreateUser)
+    r.GET("/users/:id", GetUserByID)
+    r.PUT("/users/:id", UpdateUser)
+    r.DELETE("/users/:id", DeleteUser)    
+
     r.Run(":8080") // Replace with the desired port
 }
 
 
 func (e *Event) CreateEvent(db *gorm.DB) error {
-    // Database insert logic here
+    // Database logic here
     return nil
 }
-
 
 // Placeholder function for checking if the user is authenticated and authorized
 func isUserAuthenticatedAndAuthorized(c *gin.Context) bool {
@@ -53,6 +59,7 @@ func isUserAuthenticatedAndAuthorized(c *gin.Context) bool {
 // Placeholder function for getting the current user based on the authentication
 func getCurrentUser(c *gin.Context) User {
     // Authentication and authorization logic here
+    
     // For demonstration purposes, to create a sample user
     user := User{
         ID:       1,
@@ -80,19 +87,4 @@ func setupDatabase() (*gorm.DB, error) {
     }
     
     return db, nil
-}
-
-
-
-
-func main() {
-    err := configs.LoadConfig(".env")
-    if err != nil {
-        log.Fatalf("Failed to load environment variables: %v", err)
-    }
-   dbConnectionString := configs.GetEnv("DB_CONNECTION_STRING")
-    
-    //
-    //
-
 }
