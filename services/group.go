@@ -139,6 +139,8 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	}
 
 	return groups, nil
+}
+
 
 func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if _, err := GetUserById(userId); err != nil {

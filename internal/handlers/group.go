@@ -156,6 +156,8 @@ func ListGroups(c *gin.Context) {
 	response.Success(c, http.StatusOK, message, map[string]any{
 		"groups": groups,
 	})
+}
+
 
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
