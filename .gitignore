@@ -2,3 +2,5 @@
 .vscode
 *.env
 demerzel-events
+client.json
+
