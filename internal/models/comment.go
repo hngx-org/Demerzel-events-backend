@@ -8,8 +8,8 @@ import (
 )
 
 type Comment struct {
-	Id        string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Body      string    `json:"body"`
+	Id        string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Body      string    `json:"body" validate:"required,min=1"`
 	UserId    string    `json:"user_id"`
 	EventId   string    `json:"event_id"`
 	Images    []Image   `json:"images" gorm:"foreignkey:CommentId"`

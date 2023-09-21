@@ -5,6 +5,8 @@ import (
 	"demerzel-events/pkg/response"
 	"demerzel-events/pkg/types"
 	"demerzel-events/services"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,6 +18,8 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	user, ok := rawUser.(models.User)
+	fmt.Printf("\ndsdsd rawUser type: %T, rawUser value: %v\n", rawUser, rawUser)
+
 	if !ok {
 		response.Error(c, "error: invalid user type in context")
 		return
@@ -31,7 +35,8 @@ func UpdateUser(c *gin.Context) {
 }
 
 func GetUserById(c *gin.Context) {
-	id := c.DefaultQuery("id", "")
+	id := c.Param("id")
+	println("\nKKK ", id)
 	if id == "" {
 		response.Error(c, "error: user id cannot be empty")
 		return

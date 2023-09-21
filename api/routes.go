@@ -20,9 +20,9 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.Default())
 
+	println("KKKKKKKK")
 	r.GET("/health", handlers.HealthHandler)
-
-	routes.CommentRoutes(r)
+	println("ÒLLLLLL")
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
@@ -39,8 +39,8 @@ func BuildRoutesHandler() *gin.Engine {
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
-	apiRoutes.PUT("/users/:id", handlers.UpdateComment)
 
+	routes.CommentRoutes(apiRoutes)
 
 	return r
 }
