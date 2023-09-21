@@ -33,7 +33,7 @@ func BuildRoutesHandler() *gin.Engine {
 	// mount the API routes auth middleware
 	apiRoutes.Use(AuthMiddleware())
 
-	apiRoutes.POST("/image/upload", handlers.UploadFileHandler)
+	apiRoutes.POST("/images/upload", handlers.UploadFileHandler)
 
 	// Group routes
 	apiRoutes.POST("/groups", handlers.CreateGroup)
