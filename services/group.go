@@ -1,12 +1,13 @@
 package services
 
 import (
-	"demerzel-events/internal/db"
-	"demerzel-events/internal/models"
 	"fmt"
 	"net/http"
 
 	"gorm.io/gorm"
+
+	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
 )
 
 func CreateGroup(group *models.Group) (*models.Group, error) {
@@ -74,7 +75,12 @@ func DeleteUserGroup(userID, groupID string) error {
 	result = db.DB.Delete(&userGroup)
 	return result.Error
 }
-func UpdateGroupService(tx *gorm.DB, req models.UpdateGroupRequest, id string) (int, models.Group, error) {
+
+func UpdateGroupService(
+	tx *gorm.DB,
+	req models.UpdateGroupRequest,
+	id string,
+) (int, models.Group, error) {
 	group := models.Group{
 		ID: id,
 	}
@@ -82,7 +88,9 @@ func UpdateGroupService(tx *gorm.DB, req models.UpdateGroupRequest, id string) (
 	err := group.GetGroupByID(tx)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return http.StatusNotFound, group, fmt.Errorf("group with the specified id does not exist")
+			return http.StatusNotFound, group, fmt.Errorf(
+				"group with the specified id does not exist",
+			)
 		}
 		return http.StatusBadRequest, group, err
 	}
@@ -101,6 +109,37 @@ func UpdateGroupService(tx *gorm.DB, req models.UpdateGroupRequest, id string) (
 	return http.StatusOK, group, nil
 }
 
+// query filter struct
+type Filter struct {
+	Search struct {
+		Name string
+	}
+}
+
+// get groups
+func ListGroups(f Filter) ([]models.Group, error) {
+	var err error
+	groups := make([]models.Group, 0)
+
+	args := []any{"%", f.Search.Name, "%"}
+
+	if f.Search.Name != "" {
+		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Find(&groups)
+		err = result.Error
+	}
+
+	if f.Search.Name == "" {
+		result := db.DB.Find(&groups)
+		err = result.Error
+	}
+
+	if err != nil {
+		return make([]models.Group, 0), err
+	}
+
+	return groups, nil
+}
+
 func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if _, err := GetUserById(userId); err != nil {
 		return nil, http.StatusNotFound, err
@@ -116,6 +155,7 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	}
 
 	return groups, http.StatusOK, nil
+
 }
 
 func DeleteGroup(tx *gorm.DB, id string) error {
