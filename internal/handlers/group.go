@@ -137,15 +137,15 @@ func GetUserGroups(c *gin.Context) {
 func DeleteGroupHandler(c *gin.Context) {
 	id := c.Params.ByName("id")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "Please provide an id"})
+		response.Error(c, http.StatusBadRequest, "Please provide an id")
 		return
 	}
 	err := services.DeleteGroup(db.DB, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "Group with id not found", "error": err})
+		response.Error(c, http.StatusNotFound, "Group with id not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "message": fmt.Sprintf("group with id=%s doesn't exist", id)})
+	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s doesn't exist", id), nil)
 
 }
