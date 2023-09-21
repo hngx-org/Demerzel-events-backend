@@ -18,11 +18,6 @@ func GroupEventById(c *gin.Context) {
 	
 	id := c.Param("id")
 
-	if id == "" {
-		response.Error(c, 400,"Bad Request")
-		return
-	}
-
     group := models.Group{
         Id: id,	
 	}
@@ -37,7 +32,7 @@ func GroupEventById(c *gin.Context) {
 	res := make(map[string]interface{}) 
 	res["Message"] = result
 
-		response.Success(c,200, "Successful",res)
+		response.Success(c,200, "List of events",res)
 }
 
 func CreateEventHandler(c *gin.Context) {
