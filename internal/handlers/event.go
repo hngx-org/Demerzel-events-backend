@@ -62,18 +62,14 @@ func GetEventHandler(c *gin.Context) {
 	event, err := models.GetEventByID(db.DB, eventID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   gin.H{"event": event},
-	})
+	response.Success(c,http.StatusOK,"Event details fetched", map[string]*models.Event{"event": event})
 }
 
-// list all events
-func ListEventsHandler(c *gin.Context) { 
+
 
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
