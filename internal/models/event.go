@@ -9,6 +9,7 @@ import (
 
 type NewEvent struct {
 	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
+	Thumbnail   string `json:"thumbnail"`
 	Location    string `json:"location"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
