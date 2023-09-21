@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"demerzel-events/internal/db"
+
 	"demerzel-events/internal/models"
 	"net/http"
 
@@ -33,4 +34,21 @@ func CreateEventHandler(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"Event Created": createdEvent})
 
+}
+
+// list all events
+func ListEventsHandler(c *gin.Context) {
+
+	events, err := models.ListEvents(db.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data": map[string]interface{}{
+			"events": events,
+		},
+	})
 }
