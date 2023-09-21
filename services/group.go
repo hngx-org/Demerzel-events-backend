@@ -168,7 +168,5 @@ func DeleteGroup(tx *gorm.DB, id string) error {
 		return fmt.Errorf("group with id=%s doesn't exist", id)
 	}
 
-	tx.Where("group_id = ?", id).Delete(&models.UserGroup{})
-
 	return nil
 }
