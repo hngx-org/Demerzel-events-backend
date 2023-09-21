@@ -78,3 +78,24 @@ func UpdateCommentById(updateReq models.UpdateComment, userId string) (models.Co
 	}
 	return comment, nil
 }
+
+
+func DeleteCommentById(commentId string, userId string) error {
+	var comment models.Comment
+	result := db.DB.Where("id = ?", commentId).First(&comment)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil // Return nil when the user is not found
+		}
+		return result.Error // Return the actual error for other errors
+	}
+
+	if comment.UserId != userId {
+		return errors.New("you are not authorized to delete this comment")
+	}
+
+	if err := db.DB.Delete(&comment).Error; err != nil {
+		return err
+	}
+	return nil
+}
