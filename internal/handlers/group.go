@@ -1,14 +1,15 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
-	"demerzel-events/internal/models"
-	"demerzel-events/pkg/response"
-	"demerzel-events/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+
+	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
+	"demerzel-events/services"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -44,7 +45,6 @@ func UnsubscribeFromGroup(c *gin.Context) {
 	}
 
 	err := services.DeleteUserGroup(user.Id, string(groupID))
-
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// User is not subscribed to this group, no need to unsubscribe
@@ -57,20 +57,30 @@ func UnsubscribeFromGroup(c *gin.Context) {
 	}
 
 	response.Success(c, "User successfully unsubscribed to group", map[string]any{})
-
 }
+
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
 	id := c.Params.ByName("id")
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": http.StatusBadRequest, "message": "failed to parse request", "error": err.Error()})
+		c.JSON(
+			http.StatusBadRequest,
+			gin.H{
+				"status":  http.StatusBadRequest,
+				"message": "failed to parse request",
+				"error":   err.Error(),
+			},
+		)
 		return
 	}
 
 	code, data, err := services.UpdateGroupService(db.DB, req, id)
 	if err != nil {
-		c.JSON(code, gin.H{"status": code, "message": "failed to parse request", "error": err.Error()})
+		c.JSON(
+			code,
+			gin.H{"status": code, "message": "failed to parse request", "error": err.Error()},
+		)
 		return
 	}
 
@@ -97,7 +107,17 @@ func ListGroups(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, "Groups retrieved successfully", map[string]any{
+	var message string
+
+	if len(groups) == 0 {
+		message = "No groups"
+	}
+
+	if len(groups) > 0 {
+		message = "Groups retrieved successfully"
+	}
+
+	response.Success(c, message, map[string]any{
 		"groups": groups,
 	})
 }

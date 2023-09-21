@@ -80,8 +80,10 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	var err error
 	groups := make([]models.Group, 0)
 
+	args := []any{"%", f.Search.Name, "%"}
+
 	if f.Search.Name != "" {
-		result := db.DB.Where("name LIKE ?", f.Search.Name).Find(&groups)
+		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Find(&groups)
 		err = result.Error
 	}
 
