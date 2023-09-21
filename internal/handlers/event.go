@@ -48,8 +48,32 @@ func CreateEventHandler(c *gin.Context) {
 
 }
 
+
+
+func GetEventHandler(c *gin.Context) {
+
+	eventID := c.Param("eventid")
+
+	if eventID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+		return
+	}
+
+	event, err := models.GetEventByID(db.DB, eventID)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	response.Success(c,http.StatusOK,"Event details fetched", map[string]*models.Event{"event": event})
+}
+
+
+
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
+
 
 	events, err := models.ListEvents(db.DB)
 	if err != nil {
