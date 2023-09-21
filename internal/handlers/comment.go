@@ -22,28 +22,27 @@ func CreateComment(c *gin.Context) {
 func UpdateComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, "error: unable to retrieve user from context")
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
 		return
 	}
 
 	user, ok := rawUser.(models.User)
 	if !ok {
-		response.Error(c, "error: invalid user type in context")
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
 		return
 	}
 
 	var updateReq models.UpdateComment
 	if err := c.ShouldBindJSON(&updateReq); err != nil {
-		response.JSON(c, http.StatusBadRequest, "Invalid JSON body")
+		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
 	data, err := services.UpdateCommentById(updateReq, user.Id)
 	if err != nil {
-		response.JSON(c, http.StatusBadRequest, err.Error())
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Success(c, "Comment updated successfully", map[string]any{"comment": data})
-
+	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }

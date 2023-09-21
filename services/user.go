@@ -6,6 +6,7 @@ import (
 	"demerzel-events/pkg/types"
 	"errors"
 	"fmt"
+
 	"gorm.io/gorm"
 )
 
