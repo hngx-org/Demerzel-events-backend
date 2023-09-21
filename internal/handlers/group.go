@@ -42,7 +42,7 @@ func SubscribeUserToGroup(c *gin.Context) {
 	user, ok := rawUser.(*models.User)
 
 	if !ok {
-		response.Error(c,http.StatusConflict, "error: invalid user type in context")
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
 		return
 	}
 
@@ -115,9 +115,9 @@ func GetUserGroups(c *gin.Context) {
 
 	userGroup, err := services.GetGroupsByUserId(c.Param("id"))
 	if err != nil {
-		response.Error(c, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
-	response.Success(c, "Fetched all groups", userGroup)
+	response.Success(c, http.StatusOK, "Fetched all groups", userGroup)
 	return
 }
