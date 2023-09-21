@@ -38,17 +38,6 @@ func CreateEventHandler(c *gin.Context) {
 
 	input.CreatorId = user.Id
 
-	// Check if creator id is available
-	if input.CreatorId == "" {
-		response.Error(c, http.StatusBadRequest, "CreatorId field is empty")
-		return
-	}
-
-	if reflect.ValueOf(input.CreatorId).Kind() != reflect.String {
-		response.Error(c, http.StatusBadRequest, "CreatorId is not a string")
-		return
-	}
-
 	// Check if description field is empty or is a string
 	if input.Description == "" {
 		response.Error(c, http.StatusBadRequest, "Desciption field is empty")
