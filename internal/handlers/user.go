@@ -19,6 +19,8 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	user, ok := rawUser.(models.User)
+	fmt.Printf("\ndsdsd rawUser type: %T, rawUser value: %v\n", rawUser, rawUser)
+
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
 		return
@@ -35,7 +37,8 @@ func UpdateUser(c *gin.Context) {
 }
 
 func GetUserById(c *gin.Context) {
-	id := c.DefaultQuery("id", "")
+	id := c.Param("id")
+	println("\nKKK ", id)
 	if id == "" {
 		response.Error(c, http.StatusBadRequest, "User ID cannot be empty")
 		return
