@@ -53,3 +53,10 @@ func GetUserById(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", map[string]any{"user": user})
 }
+
+func LogoutUser(c *gin.Context) {
+	c.SetCookie("authorization", "", -1, "/", "", false, true)
+	c.JSON(200, gin.H{
+		"status": "User logged out successfully",
+	})
+}
