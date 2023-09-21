@@ -181,7 +181,7 @@ func GetUserGroups(c *gin.Context) {
 	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }
 
-func DeleteGroupHandler(c *gin.Context) {
+func DeleteGroup(c *gin.Context) {
 	id := c.Params.ByName("id")
 	if id == "" {
 		response.Error(c, http.StatusBadRequest, "Please provide a valid group id")
