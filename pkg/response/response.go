@@ -2,18 +2,16 @@ package response
 
 import "github.com/gin-gonic/gin"
 
-type ResponseData = map[string]interface{}
-
-func Success(c *gin.Context, message string, data ResponseData) {
-	c.JSON(200, gin.H{
+func Success(c *gin.Context, code int, message string, data interface{}) {
+	c.JSON(code, gin.H{
 		"status":  "success",
 		"message": message,
 		"data":    data,
 	})
 }
 
-func Error(c *gin.Context, message string) {
-	c.JSON(200, gin.H{
+func Error(c *gin.Context, code int, message string) {
+	c.JSON(code, gin.H{
 		"status":  "error",
 		"message": message,
 	})

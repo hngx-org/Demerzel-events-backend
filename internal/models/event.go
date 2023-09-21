@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -9,20 +10,6 @@ import (
 
 type NewEvent struct {
 	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
-	Location    string `json:"location"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	StartDate   string `json:"start_date"`
-	EndDate     string `json:"end_date"`
-	StartTime   string `json:"start_time"`
-	EndTime     string `json:"end_time"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
-}
-
-type Event struct {
-	Id          string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	CreatorId   string `json:"creator_id" gorm:"type:varchar(255)"`
 	Thumbnail   string `json:"thumbnail"`
 	Location    string `json:"location"`
 	Title       string `json:"title"`
@@ -31,10 +18,22 @@ type Event struct {
 	EndDate     string `json:"end_date"`
 	StartTime   string `json:"start_time"`
 	EndTime     string `json:"end_time"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+}
 
-	Creator User `gorm:"foreignKey:CreatorId"`
+type Event struct {
+	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
+	Thumbnail   string    `json:"thumbnail"`
+	Location    string    `json:"location"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	StartDate   string    `json:"start_date"`
+	EndDate     string    `json:"end_date"`
+	StartTime   string    `json:"start_time"`
+	EndTime     string    `json:"end_time"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -88,17 +87,17 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 		EndTime:     event.EndTime,
 	}
 
-	err := tx.Model(Event{}).Create(&request)
+	result := tx.Model(Event{}).Create(&request)
 
-	fmt.Print(event)
+	if result.Error != nil {
+		fmt.Print(result)
 
-	if err.Error != nil {
-		fmt.Print(err)
-
-		return &Event{}, err.Error
+		return &Event{}, result.Error
 	}
+
 	return &request, nil
 }
+
 
 
 // retrieve an event using its ID
@@ -114,10 +113,12 @@ func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	return &event, nil
 }
 // ListAllEvents retrieves all events.
+
+// ListEvents retrieves all events.
 func ListEvents(tx *gorm.DB) ([]Event, error) {
 	var events []Event
 
-	err := tx.Order("start_date, start_time").Find(&events).Error
+	err := tx.Order("start_date, start_time").Preload("Creator").Find(&events).Error
 
 	if err != nil {
 		return nil, err
