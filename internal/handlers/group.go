@@ -29,6 +29,24 @@ func CreateGroup(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "", "data": newGroup})
 }
 
+func SubscribeUserToGroup(c *gin.Context) {
+	groupID := c.Param("id")
+	userID := c.Param("user_id")
+
+	data, err := services.SubscribeUserToGroup(userID, groupID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			response.Error(c, "Invalid user or group ID. Please check the values and try again")
+			return
+		}
+		response.Error(c, "Failed to subscribe user to group")
+		return
+	}
+
+	response.Success(c, "User successfully subscribed to group", data)
+	return
+}
+
 func UnsubscribeFromGroup(c *gin.Context) {
 	groupID := c.Param("id")
 	rawUser, exists := c.Get("user")

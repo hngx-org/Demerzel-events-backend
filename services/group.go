@@ -16,6 +16,37 @@ func CreateGroup(group *models.Group) (*models.Group, error) {
 	return group, nil
 }
 
+func SubscribeUserToGroup(userID, groupID string) (models.UserGroup, error) {
+	var user models.User
+	var group models.Group
+
+	userGroup := models.UserGroup{
+		UserID: userID,
+		GroupID: groupID,
+	}
+
+	existingUser := db.DB.Where(&models.User{
+		Id:  userID,
+	}).First(&user)
+	if existingUser.Error != nil {
+		return userGroup, existingUser.Error
+	}
+
+	existingGroup := db.DB.Where(&models.Group{
+		ID:  groupID,
+	}).First(&group)
+	if existingGroup.Error != nil {
+		return userGroup, existingGroup.Error
+	}
+
+	result := db.DB.Create(&userGroup)
+	if result.Error != nil {
+		return userGroup, result.Error
+	}
+
+	return userGroup, nil
+}
+
 func DeleteUserGroup(userID, groupID string) error {
 	var userGroup models.UserGroup
 
