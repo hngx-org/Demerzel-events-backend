@@ -62,6 +62,7 @@ func GetEventHandler(c *gin.Context) {
 		"status": "success",
 		"data":   gin.H{"event": event},
 	})
+}
 
 // list all events
 func ListEventsHandler(c *gin.Context) {

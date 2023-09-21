@@ -117,7 +117,7 @@ func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	}
 
 	return &event, nil
-
+}
 // ListAllEvents retrieves all events.
 func ListEvents(tx *gorm.DB) ([]Event, error) {
 	var events []Event
