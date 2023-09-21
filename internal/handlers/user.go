@@ -17,7 +17,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, ok := rawUser.(models.User)
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
 		return
@@ -29,7 +29,11 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	services.UpdateUserById(&user, updateData)
+	err := services.UpdateUserById(user, updateData)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "A server error occurred")
+		return
+	}
 	response.Success(c, http.StatusOK, "User updated successfully", nil)
 }
 
