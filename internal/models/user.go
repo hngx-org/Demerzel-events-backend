@@ -12,9 +12,9 @@ type User struct {
 	Avatar string `gorm:"column:avatar" json:"avatar"`
 
 	// Events Relationship
-	Events           []Event     `gorm:"foreignKey:Creator"`
-	InterestedEvents []Event     `gorm:"many2many:interested_events;"`
-	UserGroup        []UserGroup `json:"user_group" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+	Events           []Event     `json:"-" gorm:"foreignKey:Creator"`
+	InterestedEvents []Event     `json:"-" gorm:"many2many:interested_events;"`
+	UserGroup        []UserGroup `json:"-" gorm:"foreignkey:UserID;association_foreignkey:ID"`
 }
 
 func NewUser(name string, email string, avatar string) *User {
