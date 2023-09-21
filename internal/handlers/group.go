@@ -102,7 +102,7 @@ func UnsubscribeFromGroup(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", map[string]any{})
+	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", nil)
 }
 
 func UpdateGroup(c *gin.Context) {
@@ -153,9 +153,7 @@ func ListGroups(c *gin.Context) {
 		message = "Groups retrieved successfully"
 	}
 
-	response.Success(c, http.StatusOK, message, map[string]any{
-		"groups": groups,
-	})
+	response.Success(c, http.StatusOK, message, groups)
 }
 
 
@@ -180,5 +178,5 @@ func GetUserGroups(c *gin.Context) {
 		response.Error(c, code, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
+	response.Success(c, code, "Fetched all user groups", userGroup)
 }
