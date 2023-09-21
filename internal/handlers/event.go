@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"demerzel-events/dependencies/cloudinary"
 	"demerzel-events/internal/db"
-
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/response"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -20,16 +19,23 @@ func CreateEventHandler(c *gin.Context) {
 
 	// Error if JSON request is invalid
 	if err := c.ShouldBindJSON(&input); err != nil {
-
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
 		return
 	}
 
-	// TODO use auth middleware to get creator of event.
-	if input.CreatorId == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User id could not be found"})
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
 		return
 	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	input.CreatorId = user.Id
 
 	createdEvent, err := models.CreateEvent(db.DB, &input)
 
@@ -38,11 +44,11 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"Event Created": createdEvent})
+	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
 
 }
 
-// list all events
+// ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
 
 	events, err := models.ListEvents(db.DB)
@@ -51,25 +57,21 @@ func ListEventsHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data": map[string]interface{}{
-			"events": events,
-		},
+	response.Success(c, http.StatusOK, "All Events", map[string]interface{}{
+		"events": events,
 	})
 }
 
-func UploadFile(c *gin.Context) {
+func UploadFileHandler(c *gin.Context) {
 	uploadedFile, _ := c.FormFile("file")
 	if uploadedFile == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No files specified"})
+		response.Error(c, http.StatusBadRequest, "No files specified")
 		return
 	}
-	log.Println(uploadedFile.Filename)
 
 	file, err := uploadedFile.Open()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -77,7 +79,7 @@ func UploadFile(c *gin.Context) {
 	_, err = buf.ReadFrom(file)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to read upload:" + err.Error()})
+		response.Error(c, http.StatusBadRequest, "Unable to read upload:"+err.Error())
 		return
 	}
 
@@ -91,9 +93,11 @@ func UploadFile(c *gin.Context) {
 
 	url, err := uploader.UploadFile(buf.Bytes(), filename)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Unable to upload file:" + err.Error()})
+		response.Error(c, http.StatusBadRequest, "Unable to upload file:"+err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"url": url})
+	response.Success(c, http.StatusOK, "File uploaded", map[string]string{"url": url})
+	return
+
 }

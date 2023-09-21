@@ -20,9 +20,6 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
-	r.POST("/events", handlers.CreateEventHandler)
-	r.POST("/upload", handlers.UploadFile)
-	r.GET("/events", handlers.ListEventsHandler)
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
@@ -39,6 +36,12 @@ func BuildRoutesHandler() *gin.Engine {
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+
+	// Event Routes
+	eventRoutes := apiRoutes.Group("/events")
+	eventRoutes.GET("/", handlers.ListEventsHandler)
+	eventRoutes.POST("/", handlers.CreateEventHandler)
+	eventRoutes.POST("/upload", handlers.UploadFileHandler)
 
 	return r
 }
