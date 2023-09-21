@@ -1,5 +1,6 @@
 .idea
 .vscode
 *.env
-
+demerzel-events
 client.json
+
