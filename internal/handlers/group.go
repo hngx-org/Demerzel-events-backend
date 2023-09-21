@@ -31,12 +31,27 @@ func CreateGroup(ctx *gin.Context) {
 
 func SubscribeUserToGroup(c *gin.Context) {
 	groupID := c.Param("id")
-	userID := c.Param("user_id")
+	rawUser, exists := c.Get("user")
 
-	data, err := services.SubscribeUserToGroup(userID, groupID)
+	if !exists {
+		response.Error(c, "error: unable to retrieve user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, "error: invalid user type in context")
+		return
+	}
+
+	data, err := services.SubscribeUserToGroup(user.Id, groupID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			response.Error(c, "Invalid user or group ID. Please check the values and try again")
+			return
+		} else if err.Error() == "user already exists in group" {
+			response.Error(c, "User already subscribed to group")
 			return
 		}
 		response.Error(c, "Failed to subscribe user to group")
@@ -44,7 +59,6 @@ func SubscribeUserToGroup(c *gin.Context) {
 	}
 
 	response.Success(c, "User successfully subscribed to group", data)
-	return
 }
 
 func UnsubscribeFromGroup(c *gin.Context) {

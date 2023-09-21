@@ -39,6 +39,16 @@ func SubscribeUserToGroup(userID, groupID string) (models.UserGroup, error) {
 		return userGroup, existingGroup.Error
 	}
 
+	userExistInGroup := db.DB.Where(&models.UserGroup{
+		UserID:  userID,
+	}).First(&userGroup)
+
+	fmt.Println(userExistInGroup.Error)
+
+	if userExistInGroup.Error == nil {
+		return userGroup, fmt.Errorf("user already exists in group")
+	}
+
 	result := db.DB.Create(&userGroup)
 	if result.Error != nil {
 		return userGroup, result.Error
