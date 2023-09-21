@@ -65,10 +65,6 @@ func CreateComment(c *gin.Context) {
 func UpdateComment(c *gin.Context) {
 	commentId := c.Param("comment_id")
 	var updateReq models.UpdateComment
-	if commentId == "" {
-		response.Error(c, http.StatusBadRequest, "Comment ID cannot be empty")
-		return
-	}
 
 	updateReq.Id = commentId
 
