@@ -5,20 +5,22 @@ import (
 	"demerzel-events/internal/oauth"
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
+	"demerzel-events/pkg/types"
 	"demerzel-events/services"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: generate pseudo-randomly
+// TODO: generate this pseudo-randomly
 var oauth2State = "somerandomoauthstri"
 
 func InitalizeOAuthSignIn(c *gin.Context) {
 	oauthConfig := oauth.OauthConfig()
 
-	responseData := response.ResponseData{"redirectUrl": oauthConfig.AuthCodeURL(oauth2State)}
-	response.Success(c, "message", responseData)
+	data := types.ResponseMap{"redirectUrl": oauthConfig.AuthCodeURL(oauth2State)}
+	response.Success(c, http.StatusOK, "Authentication initialized", data)
 }
 
 func HandleOAuthCallBack(c *gin.Context) {
@@ -28,13 +30,13 @@ func HandleOAuthCallBack(c *gin.Context) {
 	callbackParams := services.NewOAuthCallbackParams(c, code, state)
 	userInfo, err := services.OAuthCallback(callbackParams)
 	if err != nil {
-		response.Error(c, "An error occurred during authentication")
+		response.Error(c, http.StatusInternalServerError, "An error occurred during authentication")
 		return
 	}
 
 	user, err := services.GetUserByEmail(userInfo.Email)
 	if err != nil {
-		response.Error(c, "An error occurred during authentication")
+		response.Error(c, http.StatusInternalServerError, "An error occurred during authentication")
 		return
 	}
 
@@ -42,16 +44,16 @@ func HandleOAuthCallBack(c *gin.Context) {
 	if user == nil {
 		newUser := models.NewUser(userInfo.Name, userInfo.Email, userInfo.Picture)
 		if user, err = services.CreateUser(newUser); err != nil {
-			response.Error(c, "An error occurred while creating account")
+			response.Error(c, http.StatusInternalServerError, "An error occurred while creating account")
 			return
 		}
 	}
 
-	data := response.ResponseData{"id": user.Id, "name": user.Name, "email": user.Email}
+	data := types.ResponseMap{"id": user.Id, "name": user.Name, "email": user.Email}
 	token, err := jwt.CreateToken(data, os.Getenv("JWT_SECRET"), 72)
 	if err != nil {
-		response.Error(c, "An error occurred while generating authentication token")
+		response.Error(c, http.StatusInternalServerError, "An error occurred while generating authentication token")
 	}
 
-	response.Success(c, "Authentication successful", response.ResponseData{"token": token})
+	response.Success(c, http.StatusOK, "Authentication successful", types.ResponseMap{"token": token})
 }
