@@ -16,9 +16,9 @@ func CreateNewComment(comment *models.Comment) (*models.Comment, error) {
 	return comment, nil
 }
 
-func UpdateCommentById(updateReq models.UpdateComment, userId string) (models.Comment, error) {
-	var comment models.Comment
-	result := db.DB.Where("event_id = ?", updateReq.EventId).First(&comment)
+func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
+	var comment *models.Comment
+	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return comment, nil // Return nil when the user is not found
