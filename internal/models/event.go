@@ -104,7 +104,7 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
-	err := tx.Where("id = ?", eventID).First(&event).Error
+	err := tx.Where("id = ?", eventID).Preload("Creator").First(&event).Error
 
 	if err != nil {	
 		return nil, err
