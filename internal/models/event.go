@@ -100,3 +100,16 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 	}
 	return &request, nil
 }
+
+// ListAllEvents retrieves all events.
+func ListEvents(tx *gorm.DB) ([]Event, error) {
+	var events []Event
+
+	err := tx.Order("start_date, start_time").Find(&events).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
