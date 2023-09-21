@@ -39,13 +39,13 @@ func SubscribeUserToGroup(userID, groupID string) (models.UserGroup, error) {
 		return userGroup, existingGroup.Error
 	}
 
-	userExistInGroup := db.DB.Where(&models.UserGroup{
-		UserID:  userID,
-	}).First(&userGroup)
+	userExistInGroup := db.DB.Where(&userGroup).Limit(1).Find(&models.UserGroup{})
 
-	fmt.Println(userExistInGroup.Error)
+	if userExistInGroup.Error != nil {
+		return userGroup, userExistInGroup.Error
+	}
 
-	if userExistInGroup.Error == nil {
+	if userExistInGroup.RowsAffected > 0 {
 		return userGroup, fmt.Errorf("user already exists in group")
 	}
 
