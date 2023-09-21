@@ -2,7 +2,6 @@ package api
 
 import (
 	"demerzel-events/internal/handlers"
-	"demerzel-events/internal/routes"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -22,8 +21,6 @@ func BuildRoutesHandler() *gin.Engine {
 
 	r.GET("/health", handlers.HealthHandler)
 
-	routes.CommentRoutes(r)
-
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
 
@@ -39,11 +36,11 @@ func BuildRoutesHandler() *gin.Engine {
 	// User routes
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
-	apiRoutes.PUT("/user/:id", handlers.UpdateComment)
 
 	//comment routes
 	apiRoutes.POST("/events/:event_id/comments", handlers.CreateComment)
-	apiRoutes.DELETE("/events/:event_id/comments/:comment_id", handlers.DeleteComment)
+	apiRoutes.PUT("/events/comments/:comment_id", handlers.UpdateComment)
+	apiRoutes.DELETE("/events/comments/:comment_id", handlers.DeleteComment)
 
 	return r
 }
