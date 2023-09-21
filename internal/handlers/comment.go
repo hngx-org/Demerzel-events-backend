@@ -47,3 +47,29 @@ func UpdateComment(c *gin.Context) {
 	response.Success(c, "Comment updated successfully", map[string]any{"comment": data})
 
 }
+
+
+func DeleteComment(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, "error: unable to retrieve Comment from context")
+		return
+	}
+
+	user, ok := rawUser.(models.User)
+	if !ok {
+		response.Error(c, "error: invalid comment type in context")
+		return
+	}
+
+	commentId := c.Param("comment_id")
+	err := services.DeleteCommentById(commentId, user.Id)
+	if err != nil {
+		response.Error(c, err.Error())
+		return
+	}
+
+	response.Success(c, "Comment deleted successfully", nil)
+}
+
+
