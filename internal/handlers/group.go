@@ -127,7 +127,6 @@ func UpdateGroup(c *gin.Context) {
 	response.Success(c, code, "Group updated successfully", data)
 }
 
-
 func ListGroups(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 
@@ -158,7 +157,6 @@ func ListGroups(c *gin.Context) {
 	})
 }
 
-
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
 
@@ -186,15 +184,15 @@ func GetUserGroups(c *gin.Context) {
 func DeleteGroupHandler(c *gin.Context) {
 	id := c.Params.ByName("id")
 	if id == "" {
-		response.Error(c, http.StatusBadRequest, "Please provide an id")
+		response.Error(c, http.StatusBadRequest, "Please provide a valid group id")
 		return
 	}
 	err := services.DeleteGroup(db.DB, id)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, "Group with id not found")
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s doesn't exist", id), nil)
+	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s deleted successfully", id), nil)
 
 }
