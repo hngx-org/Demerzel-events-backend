@@ -42,3 +42,17 @@ func UpdateGroupService(tx *gorm.DB, req models.UpdateGroupRequest, id string) (
 
 	return http.StatusOK, group, nil
 }
+
+func DeleteGroup(tx *gorm.DB, id string) error {
+
+	db := tx.Delete(&models.Group{}, "group_id")
+	if db.Error != nil {
+		return db.Error
+	} else if db.RowsAffected < 1 {
+		return fmt.Errorf("group with id=%s doesn't exist", id)
+	}
+
+	tx.Where("group_id = ?", id).Delete(&models.UserGroup{})
+
+	return nil
+}
