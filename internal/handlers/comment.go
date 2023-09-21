@@ -63,25 +63,35 @@ func CreateComment(c *gin.Context) {
 }
 
 func UpdateComment(c *gin.Context) {
+	commentId := c.Param("comment_id")
+	var updateReq models.UpdateComment
+	if commentId == "" {
+		response.Error(c, http.StatusBadRequest, "Comment ID cannot be empty")
+		return
+	}
+
+	updateReq.Id = commentId
+
 	rawUser, exists := c.Get("user")
 	if !exists {
 		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
 		return
 	}
 
-	user, ok := rawUser.(models.User)
+	user, ok := rawUser.(*models.User)
 	if !ok {
-		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		response.Error(c, http.StatusBadRequest, "Invalid context user type")
 		return
 	}
 
-	var updateReq models.UpdateComment
 	if err := c.ShouldBindJSON(&updateReq); err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
-	data, err := services.UpdateCommentById(updateReq, user.Id)
+	updateReq.Body = strings.TrimSpace(updateReq.Body)
+
+	data, err := services.UpdateCommentById(&updateReq, user.Id)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
