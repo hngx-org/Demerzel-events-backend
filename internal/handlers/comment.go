@@ -5,6 +5,7 @@ import (
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -52,20 +53,21 @@ func UpdateComment(c *gin.Context) {
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, "error: unable to retrieve Comment from context")
+		response.Error(c, "We couldn't find your user information.")
 		return
 	}
 
 	user, ok := rawUser.(models.User)
 	if !ok {
-		response.Error(c, "error: invalid comment type in context")
+        response.Error(c, "We couldn't recognize the User.")
 		return
 	}
 
 	commentId := c.Param("comment_id")
 	err := services.DeleteCommentById(commentId, user.Id)
 	if err != nil {
-		response.Error(c, err.Error())
+        detailedError := fmt.Errorf("something went wrong while deleting your comment: %s", err.Error())
+        response.Error(c, detailedError.Error())
 		return
 	}
 
