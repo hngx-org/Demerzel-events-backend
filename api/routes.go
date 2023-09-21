@@ -42,8 +42,10 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("groups/user", handlers.GetUserGroups)
 
 	// User routes
+	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+	apiRoutes.GET("/users", handlers.GetUsers)
 
 	return r
 }
