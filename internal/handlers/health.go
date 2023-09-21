@@ -1,10 +1,11 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"demerzel-events/pkg/response"
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
 func HealthHandler(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"status":  "success",
-		"message": "Team Demerzel Events API",
-	})
+	response.Success(c, http.StatusOK, "Team Demerzel Events API", nil)
 }
