@@ -17,7 +17,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, ok := rawUser.(models.User)
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
 		return
@@ -29,7 +29,11 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	services.UpdateUserById(&user, updateData)
+	err := services.UpdateUserById(user, updateData)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "A server error occurred")
+		return
+	}
 	response.Success(c, http.StatusOK, "User updated successfully", nil)
 }
 
@@ -64,12 +68,19 @@ func GetUsers(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{"user": users})
 }
-func GetUsers(c *gin.Context){
 
-	users, err := services.GetUsers()
-	if err != nil {
-		response.Error(c, "error: unable to retrieve users")
+func GetCurrentUser(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
 		return
 	}
-	response.Success(c, "Users Retrieved Successfully",map[string]any{"user": users})
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User retrieved successfully", user)
 }
