@@ -75,12 +75,16 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event){
+func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event, error){
 	var events []Event
    
-	tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.group_id = ?", group.Id).Scan(&events)
+	err := tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.group_id = ?", group.Id).Scan(&events).Error
     
-	return &events
+	if err != nil {
+		return nil, err
+	}
+
+	return &events, nil
 }
 func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 

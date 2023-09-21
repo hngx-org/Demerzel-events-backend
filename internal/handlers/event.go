@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"demerzel-events/internal/db"
+	"demerzel-events/pkg/response"
 
 	"demerzel-events/internal/models"
 	"net/http"
@@ -9,28 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GroupEvent(c *gin.Context) {
-
-	//id := c.Param("id")
-	//group, err := models.Group.Get(id)
-	// if err != nil{
-
-	// 	c.JSON(404, gin.H{
-	// 		"status":  "Failed",
-	// 		"message": "Group Not Found",
-	// 	})
-	// }
+func GroupEventById(c *gin.Context) {
 	
-    //result, err := group.GetGroupEvent(db.DB)
-
-	//this is for testing
 	id := c.Param("id")
 
 	if id == "" {
-			c.JSON(400, gin.H{
-			"status":  "Bad request",
-			"message": "Invalid group",
-		})
+		response.Error(c,"No group selected")
 		return
 	}
 
@@ -38,13 +23,17 @@ func GroupEvent(c *gin.Context) {
         Id: id,	
 	}
 
-	result:= group.GetGroupEvent(db.DB)
+	result, err := group.GetGroupEvent(db.DB)
 
-		c.JSON(200, gin.H{
-			"status":  "success",
-			"message": result,
-		})
-		
+	if err != nil {
+		response.Error(c,"Can't process your request")
+		return
+	}
+
+	res := make(map[string]interface{}) 
+	res["Message"] = result
+
+		response.Success(c,"Successful",res)
 }
 
 func CreateEventHandler(c *gin.Context) {
