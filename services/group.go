@@ -100,3 +100,18 @@ func UpdateGroupService(tx *gorm.DB, req models.UpdateGroupRequest, id string) (
 
 	return http.StatusOK, group, nil
 }
+
+func GetGroupsByUserId(userId string) ([]models.UserGroup, error) {
+	if _, err := GetUserById(userId); err != nil {
+		return nil, err
+	}
+	var userGroup []models.UserGroup
+	res := db.DB.Find(&userGroup, "user_id = ?", userId)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	if res.RowsAffected <= 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	return userGroup, nil
+}
