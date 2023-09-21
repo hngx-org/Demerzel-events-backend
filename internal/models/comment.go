@@ -24,7 +24,7 @@ type Image struct {
 }
 
 type UpdateComment struct {
-	EventId string `json:"event_id"`
+	Id string `json:"id"`
 	Body    string `json:"body"`
 }
 
