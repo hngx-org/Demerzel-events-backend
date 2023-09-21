@@ -20,9 +20,7 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.Default())
 
-	println("KKKKKKKK")
 	r.GET("/health", handlers.HealthHandler)
-	println("ÒLLLLLL")
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
