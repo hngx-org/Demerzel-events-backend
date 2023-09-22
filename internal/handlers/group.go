@@ -155,9 +155,7 @@ func ListGroups(c *gin.Context) {
 		message = "Groups retrieved successfully"
 	}
 
-	response.Success(c, http.StatusOK, message, map[string]any{
-		"groups": groups,
-	})
+	response.Success(c, http.StatusOK, message, groups)
 }
 
 // GetUserGroups returns all group this user belongs to
@@ -176,12 +174,12 @@ func GetUserGroups(c *gin.Context) {
 		return
 	}
 
-	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	userGroups, code, err := services.GetGroupsByUserId(user.Id)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
+	response.Success(c, code, "Fetched all user groups", userGroups)
 }
 
 func GetGroupById(c *gin.Context) {
