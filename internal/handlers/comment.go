@@ -42,6 +42,18 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
+	_, eventErr := models.GetEventByID(db.DB, input.EventId)
+
+	if eventErr != nil {
+		if eventErr.Error() == "record not found" {
+			response.Error(c, http.StatusNotFound, "Event does not exist to comment on")
+			return
+		}
+
+		response.Error(c, http.StatusInternalServerError, eventErr.Error())
+		return
+	}
+
 	data, err := services.CreateNewComment(&input, user)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
