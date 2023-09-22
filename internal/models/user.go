@@ -31,3 +31,11 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 
 	return nil
 }
+
+func (u *User) GetUserByID(tx *gorm.DB) error {
+	result := tx.First(&u, "id=?", u.Id)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
