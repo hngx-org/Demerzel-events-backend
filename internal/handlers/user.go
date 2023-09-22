@@ -18,9 +18,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, ok := rawUser.(models.User)
-	fmt.Printf("\ndsdsd rawUser type: %T, rawUser value: %v\n", rawUser, rawUser)
-
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
 		return
@@ -32,7 +30,11 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	services.UpdateUserById(&user, updateData)
+	err := services.UpdateUserById(user, updateData)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "A server error occurred")
+		return
+	}
 	response.Success(c, http.StatusOK, "User updated successfully", nil)
 }
 
@@ -56,4 +58,31 @@ func GetUserById(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", map[string]any{"user": user})
+}
+
+func GetUsers(c *gin.Context) {
+
+	users, err := services.GetUsers()
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "An error occurred while retrieving users")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{"user": users})
+}
+
+func GetCurrentUser(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User retrieved successfully", user)
 }
