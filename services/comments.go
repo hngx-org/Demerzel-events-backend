@@ -40,34 +40,20 @@ func CreateNewComment(newComment *models.NewComment, user *models.User) (*models
 	return commentRespnse, nil
 }
 
-func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
-	var comment *models.Comment
-	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("coomment doesn't exist")
-		}
-		return nil, result.Error // Return the actual error for other errors
-	}
-
-	if comment.CreatorId != userId {
-		return comment, errors.New("you are not authorized to update this comment")
-	}
-
-	comment.Body = updateReq.Body
-	if err := db.DB.Save(&comment).Error; err != nil {
-		return comment, err
-	}
-	return comment, nil
-}
-
-func GetComments(eventId string) ([]*models.CommentResponse, error) {
+func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse, int, error) {
 	var comments []*models.Comment
-	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
+	var totalComments int64
+
+	// Query for comments with pagination
+	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").
+		Offset(offset).Limit(perPage).Find(&comments).Error
 	if err != nil {
 		log.Println("Error fetching comments from db")
-		return nil, err
+		return nil, int(totalComments), err
 	}
+
+	// Get the total count of comments for the event
+	db.DB.Model(&models.Comment{}).Where("event_id = ?", eventId).Count(&totalComments)
 
 	// Create a slice to hold the CommentResponse objects
 	commentResponses := make([]*models.CommentResponse, len(comments))
@@ -93,7 +79,28 @@ func GetComments(eventId string) ([]*models.CommentResponse, error) {
 		commentResponses[i] = commentResponse
 	}
 
-	return commentResponses, nil
+	return commentResponses, int(totalComments), nil
+}
+
+func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
+	var comment *models.Comment
+	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("coomment doesn't exist")
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	if comment.CreatorId != userId {
+		return comment, errors.New("you are not authorized to update this comment")
+	}
+
+	comment.Body = updateReq.Body
+	if err := db.DB.Save(&comment).Error; err != nil {
+		return comment, err
+	}
+	return comment, nil
 }
 
 func DeleteCommentById(commentId string, userId string) error {
