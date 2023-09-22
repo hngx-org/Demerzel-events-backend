@@ -45,9 +45,9 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return comment, nil // Return nil when the user is not found
+			return nil, errors.New("coomment doesn't exist")
 		}
-		return comment, result.Error // Return the actual error for other errors
+		return nil, result.Error // Return the actual error for other errors
 	}
 
 	if comment.CreatorId != userId {
@@ -102,7 +102,7 @@ func DeleteCommentById(commentId string, userId string) error {
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil // Return nil when the user is not found
+			return errors.New("coomment doesn't exist")
 		}
 		return result.Error // Return the actual error for other errors
 	}

@@ -56,6 +56,7 @@ func BuildRoutesHandler() *gin.Engine {
 	eventRoutes := apiRoutes.Group("/events")
 	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
 
 	//comment routes
@@ -63,7 +64,6 @@ func BuildRoutesHandler() *gin.Engine {
 	commentRoutes.POST("/", handlers.CreateComment)
 	commentRoutes.PUT("/:comment_id", handlers.UpdateComments)
 	commentRoutes.DELETE("/:comment_id", handlers.DeleteComment)
-	commentRoutes.GET("/:event_id", handlers.GetCommentsHandler)
 
 	return r
 }
