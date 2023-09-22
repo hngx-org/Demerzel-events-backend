@@ -22,14 +22,13 @@ func CreateComment(c *gin.Context) {
 	eventId := c.Param("event_id")
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, http.StatusInternalServerError, "error: unable to retrieve user from context")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
 	user, ok := rawUser.(*models.User)
-
 	if !ok {
-		response.Error(c, http.StatusInternalServerError, "error: invalid user type in context")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
@@ -70,13 +69,13 @@ func UpdateComment(c *gin.Context) {
 
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
 	user, ok := rawUser.(*models.User)
 	if !ok {
-		response.Error(c, http.StatusBadRequest, "Invalid context user type")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
@@ -94,4 +93,27 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
+}
+
+func DeleteComment(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	commentId := c.Param("comment_id")
+	err := services.DeleteCommentById(commentId, user.Id)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comment deleted successfully", nil)
 }

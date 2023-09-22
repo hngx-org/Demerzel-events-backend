@@ -40,7 +40,7 @@ func BuildRoutesHandler() *gin.Engine {
 	//comment routes
 	apiRoutes.POST("/events/:event_id/comments", handlers.CreateComment)
 	apiRoutes.PUT("/events/comments/:comment_id", handlers.UpdateComment)
-
+	apiRoutes.DELETE("/events/comments/:comment_id", handlers.DeleteComment)
 
 	return r
 }
