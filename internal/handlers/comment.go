@@ -88,7 +88,7 @@ func GetCommentsHandler(c *gin.Context) {
 
 	_, exists := c.Get("user")
 	if !exists {
-		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		response.Error(c, http.StatusBadRequest, "An error occurred")
 		return
 	}
 
