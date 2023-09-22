@@ -61,13 +61,48 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	return comment, nil
 }
 
-func GetComments(eventId string) ([]*models.CommentResponse, error) {
-	var comments []*models.Comment
-	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
+func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
+	var comment *models.Comment
+	err := db.DB.Where("id = ?", commentId).Preload("Creator").First(&comment).Error
+	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
 	if err != nil {
-		log.Println("Error fetching comments from db")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("comment does not exist")
+		}
 		return nil, err
 	}
+
+	commentResponse := &models.CommentResponse{
+		Id:        comment.Id,
+		Body:      comment.Body,
+		Images:    comment.Images,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+		EventId:   comment.EventId,
+		Creator: models.CommentCreator{
+			Id:     comment.Creator.Id,
+			Name:   comment.Creator.Name,
+			Avatar: comment.Creator.Avatar,
+		},
+	}
+
+	return commentResponse, nil
+}
+
+func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse, int, error) {
+	var comments []*models.Comment
+	var totalComments int64
+
+	// Query for comments with pagination
+	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").
+		Offset(offset).Limit(perPage).Find(&comments).Error
+	if err != nil {
+		log.Println("Error fetching comments from db")
+		return nil, int(totalComments), err
+	}
+
+	// Get the total count of comments for the event
+	db.DB.Model(&models.Comment{}).Where("event_id = ?", eventId).Count(&totalComments)
 
 	// Create a slice to hold the CommentResponse objects
 	commentResponses := make([]*models.CommentResponse, len(comments))
@@ -93,7 +128,7 @@ func GetComments(eventId string) ([]*models.CommentResponse, error) {
 		commentResponses[i] = commentResponse
 	}
 
-	return commentResponses, nil
+	return commentResponses, int(totalComments), nil
 }
 
 func DeleteCommentById(commentId string, userId string) error {
