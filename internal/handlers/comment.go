@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
@@ -37,6 +38,18 @@ func CreateComment(c *gin.Context) {
 
 	if strings.TrimSpace(input.Body) == "" {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
+		return
+	}
+
+	_, eventErr := models.GetEventByID(db.DB, input.EventId)
+
+	if eventErr != nil {
+		if eventErr.Error() == "record not found" {
+			response.Error(c, http.StatusNotFound, "Event does not exist to comment on")
+			return
+		}
+
+		response.Error(c, http.StatusInternalServerError, eventErr.Error())
 		return
 	}
 
@@ -81,6 +94,25 @@ func UpdateComment(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
+}
+
+func GetComment(c *gin.Context) {
+	// eventId := c.Param("eventid")
+	commentId := c.Param("comment_id")
+
+	_, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+	comment, err := services.GetCommentByCommentId(commentId)
+
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.Comment{"comment": comment})
 }
 
 func DeleteComment(c *gin.Context) {
