@@ -84,6 +84,28 @@ func UpdateComments(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
 
+func GetComment(c *gin.Context) {
+	// eventId := c.Param("eventid")
+	commentId := c.Param("comment_id")
+
+	_, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	comment, commentErr := services.GetCommentByCommentId(commentId)
+
+	if commentErr != nil {
+
+		response.Error(c, http.StatusBadRequest, commentErr.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.Comment{"comment": comment})
+}
+
 func GetCommentsHandler(c *gin.Context) {
 	eventId := c.Param("event_id")
 

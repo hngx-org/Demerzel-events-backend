@@ -61,6 +61,20 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	return comment, nil
 }
 
+func GetCommentByCommentId(commentId string) (*models.Comment, error) {
+	var comment *models.Comment
+	err := db.DB.Where("id = ?", commentId).First(&comment).Error
+	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("comment does not exist")
+		}
+		return nil, err
+	}
+
+	return comment, nil
+}
+
 func GetComments(eventId string) ([]*models.CommentResponse, error) {
 	var comments []*models.Comment
 	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
