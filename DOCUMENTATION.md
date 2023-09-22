@@ -172,6 +172,41 @@ header should be gotten from the response body.
          "status": "success"
       }
       ```
+
+* **GET /api/groups/{id}**
+   * **Summary**: Get a group by Id
+   * **Description**: Fetch a group details with Id
+   * **Sample Request Url**: `{host}/api/groups/bcbb8231-e97d-461e-aa95-e2c426b68b28`
+   * **Response**:  
+      Status Code: 200
+      Body: 
+      ```Json
+      {
+         "data": {
+            "id": "bcbb8231-e97d-461e-aa95-e2c426b68b28",
+            "name": "My Group",
+            "created_at": "2023-09-22T09:34:44.376Z",
+            "updated_at": "2023-09-22T09:34:44.376Z",
+            "members": [
+                  {
+                     "id": "a750e6c1-50e5-4ba3-84fc-73dbbb684acc",
+                     "user_id": "6be00466-af9f-444c-81bc-969d575342be",
+                     "group_id": "bcbb8231-e97d-461e-aa95-e2c426b68b28",
+                     "created_at": "2023-09-22T09:55:59.673Z",
+                     "updated_at": "2023-09-22T09:55:59.673Z",
+                     "user": {
+                        "id": "6be00466-af9f-444c-81bc-969d575342be",
+                        "name": "user_name",
+                        "email": "example@gmail.com",
+                        "avatar": "avarter_url"
+                     }
+                  }
+               ]
+         },
+         "message": "Group retrieved successfully",
+         "status": "success"
+      }
+
 * **POST /api/groups/{id}/subscribe**  
    * **Summary**: Subscribe to a group
    * **Description**: Subscribe a user to a group by ID, it is required that the
@@ -319,13 +354,150 @@ header should be gotten from the response body.
          "status": "success"
       }
       ```
+### Users
+* **GET /api/users/current**
+   * **Summary**: Retrieve details of the current User
+   * **Description**: Get the detials of the current user whose bearer token is in the Authorization key in the header.
+   * **Sample Request URL**: `{host}/api/users/current`
+   * **Security**: 
+      ```Json
+      "security": [
+            { "Bearer": [] }
+            ]
+      ```
+   * **Response**:   
+   Status Code: 200   
+   Body: 
+      ```Json
+      {
+         "data": {
+            "id": "664f1610-b0a0-45bc-9807-96ea7d1872af",
+            "name": "user_name",
+            "email": "example@gmail.com",
+            "avatar": "avater_url"
+         },
+         "message": "User retrieved successfully",
+         "status": "success"
+      }
+   
+* **GET /api/users/{id}**
+   * **Summary**: Retrieve a User by id
+   * **Description**: Get the details of a User with User Id (uuid)
+   * **Sample Request URL**: `{host}/api/users/664f1610-b0a0-45bc-2807-96ea7d1872ai`
+   * **Response**:   
+   Status Code: 200  
+   Body:
+      ```Json
+      {
+         "data": {
+            "user": {
+                  "id": "664f1610-b0a0-45bc-2807-96ea7d1872ai",
+                  "name": "user_name",
+                  "email": "example@gmail.com",
+                  "avatar": "https://avater_url"
+            }
+         },
+         "message": "User retrieved successfully",
+         "status": "success"
+      }
+      ```
+      Status Code: 404  
+      Body:
+      ```Json
+      {
+         "message": "User with the ID (664f1610-b0a0-45bc-9807-96ea7d1872a) does not exist",
+         "status": "error"
+      }
+      ```
+* **PUT /api/users/{id}**
+   * **Summary**: Update details of a user
+   * **Description**: Update the Name and Avater of a user, remember to set the bearer token in the request header.
+   * **Sample Request URL**: `{host}/api/users/664f1610-b0a0-45bc-2807-96ea7d1872ai`
+   * **Parameters**:  
+   Body:  
+      ```Json
+      {
+         "name": "new_user_name",
+         "avater": "avater_url",
+      }
+      ```
+      > **NB:** Both parameters (name and avater) are both optional, but either must be supplied.
+   * **Response**:  
+   Status Code: 200  
+   Body:  
+      ```Json
+      {
+         "data": null,
+         "message": "User updated successfully",
+         "status": "success"
+      }
+      ```
+      Status Code: 400  
+      Body:
+      ```Json
+      {
+         "message": "Invalid request body format",
+         "status": "error"
+      }
+      ```
+* **GET /api/users**
+   * **Summary**: Retrive all users
+   * **Description**: Get a list of all users details: name, email and avatar
+   * **Sample Request URL**: `{host}/api/image/upload`
+   * **Security**: 
+      ```Json
+      "security": [
+            { "Bearer": [] }
+            ]
+      ```
+   * **Response**:  
+   Status Code: 200  
+   Body:
+      ```Json
+      {
+         "data": {
+            "user": [
+                  {
+                     "id": "664f1610-b0a0-45bc-9807-96ea7d4562af",
+                     "name": "Username_1",
+                     "email": "example1@gmail.com",
+                     "avatar": "https://avatar.url"
+                  },
+                  {
+                     "id": "6be00466-af9f-444c-81bc-969d523442be",
+                     "name": "Username_2",
+                     "email": "example2@gmail.com",
+                     "avatar": "https://avatar.url"
+                  }
+            ]
+         },
+         "message": "Users Retrieved Successfully",
+         "status": "success"
+      }
+
+* **POST api/users/logout**
+   * **Summary*: Logout the current user
+   * **Sample Request URL**: `{host}/api/users/logout`
+   * **Response**:   
+   Status Code: 200  
+   Body:
+      ```Json
+      {
+         "data": null,
+         "message": "logged out successfully",
+         "status": "success"
+      }
+      ```
+
+### Events
+
 ### Images
 * **POST api/images/upload**
    * **Summary**: Upload an Image
    * **Description**: Upload an image and get a Cloudinary url of the hosted image. Set the Content-Type header to `multipart/form-data`. Name the form field containing the image file `file`.
    * **Sample Request URL**: `{host}/api/images/upload`
    * **Parameters**:  
-   Body
+   Body:  
       ```Json
       "file": "url_to_file/image.jpeg"
       ```
