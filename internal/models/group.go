@@ -13,7 +13,7 @@ type Group struct {
 	Image     string      `json:"image"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
-	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
+	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
 }
 
 type UserGroup struct {
