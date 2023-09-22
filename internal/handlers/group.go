@@ -180,3 +180,24 @@ func GetUserGroups(c *gin.Context) {
 	}
 	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }
+
+func GetGroupById(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.Error(c, http.StatusBadRequest, "Group ID is required")
+		return
+	}
+
+	group, err := services.GetGroupById(id)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Group retrieved successfully", group)
+}
