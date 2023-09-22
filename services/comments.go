@@ -40,6 +40,56 @@ func CreateNewComment(newComment *models.NewComment, user *models.User) (*models
 	return commentRespnse, nil
 }
 
+
+func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
+	var comment *models.Comment
+	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, errors.New("coomment doesn't exist")
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	if comment.CreatorId != userId {
+		return comment, errors.New("you are not authorized to update this comment")
+	}
+
+	comment.Body = updateReq.Body
+	if err := db.DB.Save(&comment).Error; err != nil {
+		return comment, err
+	}
+	return comment, nil
+}
+
+func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
+	var comment *models.Comment
+	err := db.DB.Where("id = ?", commentId).Preload("Creator").First(&comment).Error
+	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("comment does not exist")
+		}
+		return nil, err
+	}
+
+	commentResponse := &models.CommentResponse{
+		Id:        comment.Id,
+		Body:      comment.Body,
+		Images:    comment.Images,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+		EventId:   comment.EventId,
+		Creator: models.CommentCreator{
+			Id:     comment.Creator.Id,
+			Name:   comment.Creator.Name,
+			Avatar: comment.Creator.Avatar,
+		},
+	}
+
+	return commentResponse, nil
+}
+
 func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse, int, error) {
 	var comments []*models.Comment
 	var totalComments int64

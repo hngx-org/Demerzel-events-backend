@@ -136,6 +136,57 @@ func UpdateComments(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
 
+
+func GetComment(c *gin.Context) {
+	// eventId := c.Param("eventid")
+	commentId := c.Param("comment_id")
+
+	_, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	comment, commentErr := services.GetCommentByCommentId(commentId)
+
+	if commentErr != nil {
+
+		response.Error(c, http.StatusBadRequest, commentErr.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.CommentResponse{"comment": comment})
+}
+
+func GetCommentsHandler(c *gin.Context) {
+	eventId := c.Param("event_id")
+
+	_, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		return
+	}
+
+	_, eventexist := models.GetEventByID(db.DB, eventId)
+	if eventexist != nil {
+		if eventexist.Error() == "record not found" {
+			response.Error(c, http.StatusNotFound, "Event doesn't exist")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	comments, err := services.GetComments(eventId)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comments": comments})
+}
+
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
 	if !exists {
