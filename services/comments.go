@@ -5,18 +5,17 @@ import (
 	"demerzel-events/internal/models"
 	"errors"
 	"log"
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-func CreateNewComment(newComment *models.NewComment, userId string) (*models.Comment, error) {
+func CreateNewComment(newComment *models.NewComment, user *models.User) (*models.CommentResponse, error) {
 	comment := models.Comment{
 		Body:      newComment.Body,
 		Images:    newComment.Images,
 		EventId:   newComment.EventId,
-		CreatorId: userId,
+		CreatorId: user.Id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -25,7 +24,20 @@ func CreateNewComment(newComment *models.NewComment, userId string) (*models.Com
 		return nil, err
 	}
 
-	return &comment, nil
+	commentRespnse := &models.CommentResponse{
+		Id:        comment.Id,
+		Body:      comment.Body,
+		Images:    comment.Images,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+		EventId:   comment.EventId,
+		Creator: models.CommentCreator{
+			Id:     user.Id,
+			Name:   user.Name,
+			Avatar: user.Avatar,
+		},
+	}
+	return commentRespnse, nil
 }
 
 func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
@@ -49,21 +61,44 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	return comment, nil
 }
 
-func GetComments(eventId string) ([]*models.Comment, error) {
+func GetComments(eventId string) ([]*models.CommentResponse, error) {
 	var comments []*models.Comment
 	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
 	if err != nil {
 		log.Println("Error fetching comments from db")
-		return comments, err
+		return nil, err
 	}
 
-	return comments, nil
+	// Create a slice to hold the CommentResponse objects
+	commentResponses := make([]*models.CommentResponse, len(comments))
+	for i, comment := range comments {
+		commentResponse := &models.CommentResponse{
+			Id:        comment.Id,
+			Body:      comment.Body,
+			EventId:   comment.EventId,
+			Images:    comment.Images,
+			CreatedAt: comment.CreatedAt,
+			UpdatedAt: comment.UpdatedAt,
+		}
+
+		// Check if comment.Creator is not nil and populate CommentCreator
+		if comment.Creator != nil {
+			commentResponse.Creator = models.CommentCreator{
+				Id:     comment.Creator.Id,
+				Name:   comment.Creator.Name,
+				Avatar: comment.Creator.Avatar,
+			}
+		}
+
+		commentResponses[i] = commentResponse
+	}
+
+	return commentResponses, nil
 }
 
 func DeleteCommentById(commentId string, userId string) error {
 	var comment models.Comment
 	result := db.DB.Where("id = ?", commentId).First(&comment)
-	fmt.Println("HEYYY", commentId, result)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

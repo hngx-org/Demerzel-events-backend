@@ -28,6 +28,16 @@ type Comment struct {
 	CreatorId string    `json:"creator_id" gorm:"type:varchar(255)"`
 }
 
+type CommentResponse struct {
+	Id        string         `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Body      string         `json:"body" validate:"required,min=1"`
+	EventId   string         `json:"event_id"`
+	Images    Images         `json:"images" gorm:"type:TEXT"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	Creator   CommentCreator `json:"creator"`
+}
+
 type CommentCreator struct {
 	Id     string `gorm:"primaryKey;type:varchar(255)" json:"id"`
 	Name   string `gorm:"column:name" json:"name"`
