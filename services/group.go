@@ -131,7 +131,7 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	res := db.DB.
 		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
 		Where("user_groups.user_id = ?", userId).
-		Find(&groups)
+		Preload("Events").Find(&groups)
 
 	if res.Error != nil {
 		return nil, http.StatusNotFound, res.Error

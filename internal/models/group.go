@@ -14,6 +14,7 @@ type Group struct {
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
 	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
+	Events    []Event     `json:"events" gorm:"many2many:group_events"`
 }
 
 type UserGroup struct {

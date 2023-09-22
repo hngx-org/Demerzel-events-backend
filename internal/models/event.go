@@ -98,20 +98,19 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 	return &request, nil
 }
 
-
-
 // retrieve an event using its ID
 func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
 	err := tx.Where("id = ?", eventID).Preload("Creator").First(&event).Error
 
-	if err != nil {	
+	if err != nil {
 		return nil, err
 	}
 
 	return &event, nil
 }
+
 // ListAllEvents retrieves all events.
 
 // ListEvents retrieves all events.
@@ -126,4 +125,19 @@ func ListEvents(tx *gorm.DB) ([]Event, error) {
 
 	return events, nil
 
+}
+
+func ListEventsInGroups(tx *gorm.DB, groupIDs []string) ([]Event, error) {
+	var events []Event
+
+	err := tx.Model(&Event{}).
+		Joins("JOIN group_events ON events.id = group_events.event_id").
+		Where("group_events.group_id IN ?", groupIDs).
+		Preload("Creator").Find(&events).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
