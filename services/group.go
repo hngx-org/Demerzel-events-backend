@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -17,58 +18,40 @@ func CreateGroup(group *models.Group) (*models.Group, error) {
 	return group, nil
 }
 
-func SubscribeUserToGroup(userID, groupID string) (models.UserGroup, error) {
-	var user models.User
-	var group models.Group
+func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
+	var userGroup models.UserGroup
 
-	userGroup := models.UserGroup{
-		UserID:  userID,
-		GroupID: groupID,
+	result := db.DB.Where("group_id = ?", groupID).Where("user_id = ?", userID).First(&userGroup)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		userGroup = models.UserGroup{
+			UserID:  userID,
+			GroupID: groupID,
+		}
+
+		result = db.DB.Create(&userGroup)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+
+		return &userGroup, nil
 	}
 
-	existingUser := db.DB.Where(&models.User{
-		Id: userID,
-	}).First(&user)
-	if existingUser.Error != nil {
-		return userGroup, existingUser.Error
-	}
-
-	existingGroup := db.DB.Where(&models.Group{
-		ID: groupID,
-	}).First(&group)
-	if existingGroup.Error != nil {
-		return userGroup, existingGroup.Error
-	}
-
-	userExistInGroup := db.DB.Where(&models.UserGroup{
-		UserID: userID,
-	}).First(&userGroup)
-
-	fmt.Println(userExistInGroup.Error)
-
-	if userExistInGroup.Error == nil {
-		return userGroup, fmt.Errorf("user already exists in group")
-	}
-
-	result := db.DB.Create(&userGroup)
 	if result.Error != nil {
-		return userGroup, result.Error
+		return nil, result.Error
 	}
 
-	return userGroup, nil
+	return nil, fmt.Errorf("user already subscribed to group")
 }
 
 func DeleteUserGroup(userID, groupID string) error {
 	var userGroup models.UserGroup
-
-	// Find the UserGroup by user and group IDs
-	result := db.DB.Where(&models.UserGroup{
-		UserID:  userID,
-		GroupID: groupID,
-	}).First(&userGroup)
-
+	result := db.DB.Where("group_id = ?", groupID).Where("user_id = ?", userID).First(&userGroup)
 	if result.Error != nil {
-		return result.Error // Return the actual error for other errors
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("user not subscribed to group")
+		}
+		return result.Error
 	}
 
 	// Delete the UserGroup
@@ -109,7 +92,6 @@ func UpdateGroupService(
 	return http.StatusOK, group, nil
 }
 
-
 // query filter struct
 type Filter struct {
 	Search struct {
@@ -141,7 +123,6 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	return groups, nil
 }
 
-
 func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if _, err := GetUserById(userId); err != nil {
 		return nil, http.StatusNotFound, err
@@ -155,7 +136,33 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if res.Error != nil {
 		return nil, http.StatusNotFound, res.Error
 	}
-	
-	return groups,http.StatusOK, nil
 
+	return groups, http.StatusOK, nil
+}
+func DeleteGroup(tx *gorm.DB, id string) error {
+
+	// Delete group with specified id.
+	db := tx.Delete(&models.Group{}, "group_id")
+	if db.Error != nil {
+		return db.Error
+	} else if db.RowsAffected < 1 {
+		return fmt.Errorf("group with id=%s doesn't exist", id)
+	}
+
+	return nil
+}
+
+func GetGroupById(id string) (*models.Group, error) {
+	var group models.Group
+	fmt.Printf("group id %s", id)
+
+	result := db.DB.Where("id = ?", id).Preload("Members.User").First(&group)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil // Return nil when the group is not found
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	return &group, nil
 }

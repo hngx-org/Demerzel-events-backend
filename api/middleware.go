@@ -4,9 +4,10 @@ import (
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
