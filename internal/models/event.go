@@ -133,6 +133,10 @@ func ListEventsInGroups(tx *gorm.DB, groupIDs []string) ([]Event, error) {
 	err := tx.Model(&Event{}).
 		Joins("JOIN group_events ON events.id = group_events.event_id").
 		Where("group_events.group_id IN ?", groupIDs).
+		Distinct("events.id").
+		Select("events.id, events.creator_id, events.thumbnail," +
+			"events.location, events.title, events.description, " +
+			"events.start_date,events.end_date,events.start_time,events.end_time,events.created_at, events.updated_at").
 		Preload("Creator").Find(&events).Error
 
 	if err != nil {
