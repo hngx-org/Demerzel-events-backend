@@ -38,9 +38,9 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
 
 	//comment routes
+	apiRoutes.GET("/events/:event_id/comments", handlers.GetComments)
 	apiRoutes.POST("/events/:event_id/comments", handlers.CreateComment)
 	apiRoutes.PUT("/events/comments/:comment_id", handlers.UpdateComment)
-
 
 	return r
 }

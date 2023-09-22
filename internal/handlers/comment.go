@@ -95,3 +95,18 @@ func UpdateComment(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
+
+func GetComments(c *gin.Context) {
+	eventId := c.Param("event_id")
+
+	var Comments []*models.Comment
+
+	result, err := services.GetComments(eventId, Comments)
+
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comments fetched successfully", map[string][]*models.Comment{"comments": result})
+}

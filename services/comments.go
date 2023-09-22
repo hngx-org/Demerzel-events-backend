@@ -36,3 +36,17 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	}
 	return comment, nil
 }
+
+func GetComments(eventId string, comments []*models.Comment) ([]*models.Comment, error) {
+
+	err := db.DB.Where("event_id = ?", eventId).Find(&comments).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return comments, nil
+		}
+		return comments, err
+	}
+
+	return comments, nil
+}
