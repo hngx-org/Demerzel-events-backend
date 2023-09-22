@@ -109,6 +109,22 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 	return &request, nil
 }
 
+
+
+// retrieve an event using its ID
+func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
+	var event Event
+
+	err := tx.Where("id = ?", eventID).Preload("Creator").First(&event).Error
+
+	if err != nil {	
+		return nil, err
+	}
+
+	return &event, nil
+}
+// ListAllEvents retrieves all events.
+
 // ListEvents retrieves all events.
 func ListEvents(tx *gorm.DB) ([]Event, error) {
 	var events []Event
@@ -120,4 +136,5 @@ func ListEvents(tx *gorm.DB) ([]Event, error) {
 	}
 
 	return events, nil
+
 }
