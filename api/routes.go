@@ -33,14 +33,32 @@ func BuildRoutesHandler() *gin.Engine {
 	// mount the API routes auth middleware
 	apiRoutes.Use(AuthMiddleware())
 
+	apiRoutes.POST("/images/upload", handlers.UploadFileHandler)
+
+	// Group routes
+	apiRoutes.POST("/groups", handlers.CreateGroup)
+	apiRoutes.GET("/groups", handlers.ListGroups)
+	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
+	apiRoutes.POST("/groups/:id/unsubscribe", handlers.UnsubscribeFromGroup)
+	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
+	apiRoutes.GET("groups/user", handlers.GetUserGroups)
+
 	// User routes
+	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+	apiRoutes.GET("/users", handlers.GetUsers)
+
+	// Event Routes
+	eventRoutes := apiRoutes.Group("/events")
+	eventRoutes.GET("/", handlers.ListEventsHandler)
+	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+	eventRoutes.POST("/", handlers.CreateEventHandler)
 
 	//comment routes
 	apiRoutes.POST("/events/:event_id/comments", handlers.CreateComment)
 	apiRoutes.PUT("/events/comments/:comment_id", handlers.UpdateComment)
-
+	apiRoutes.DELETE("/events/comments/:comment_id", handlers.DeleteComment)
 
 	return r
 }

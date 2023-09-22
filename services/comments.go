@@ -5,6 +5,7 @@ import (
 	"demerzel-events/internal/models"
 	"errors"
 	"log"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -47,4 +48,26 @@ func GetComments(eventId string) ([]*models.Comment, error) {
 	}
 
 	return comments, nil
+}
+
+func DeleteCommentById(commentId string, userId string) error {
+	var comment models.Comment
+	result := db.DB.Where("id = ?", commentId).First(&comment)
+	fmt.Println("HEYYY", commentId, result)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil // Return nil when the user is not found
+		}
+		return result.Error // Return the actual error for other errors
+	}
+
+	if comment.UserId != userId {
+		return errors.New("you are not authorized to delete this comment")
+	}
+
+	if err := db.DB.Delete(&comment).Error; err != nil {
+		return err
+	}
+	return nil
 }
