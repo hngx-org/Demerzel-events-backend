@@ -49,7 +49,7 @@ func CreateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment created", map[string]any{"comment": data})
 }
 
-func UpdateComment(c *gin.Context) {
+func UpdateCommentHandler(c *gin.Context) {
 	commentId := c.Param("comment_id")
 	var updateReq models.UpdateComment
 
@@ -103,6 +103,7 @@ func GetCommentsHandler(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comment": commentSlice})
+}
 
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
