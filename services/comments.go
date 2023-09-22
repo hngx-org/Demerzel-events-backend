@@ -40,6 +40,7 @@ func CreateNewComment(newComment *models.NewComment, user *models.User) (*models
 	return commentRespnse, nil
 }
 
+
 func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
 	var comment *models.Comment
 	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
@@ -89,13 +90,20 @@ func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
 	return commentResponse, nil
 }
 
-func GetComments(eventId string) ([]*models.CommentResponse, error) {
+func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse, int, error) {
 	var comments []*models.Comment
-	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
+	var totalComments int64
+
+	// Query for comments with pagination
+	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").
+		Offset(offset).Limit(perPage).Find(&comments).Error
 	if err != nil {
 		log.Println("Error fetching comments from db")
-		return nil, err
+		return nil, int(totalComments), err
 	}
+
+	// Get the total count of comments for the event
+	db.DB.Model(&models.Comment{}).Where("event_id = ?", eventId).Count(&totalComments)
 
 	// Create a slice to hold the CommentResponse objects
 	commentResponses := make([]*models.CommentResponse, len(comments))
@@ -121,8 +129,9 @@ func GetComments(eventId string) ([]*models.CommentResponse, error) {
 		commentResponses[i] = commentResponse
 	}
 
-	return commentResponses, nil
+	return commentResponses, int(totalComments), nil
 }
+
 
 func DeleteCommentById(commentId string, userId string) error {
 	var comment models.Comment

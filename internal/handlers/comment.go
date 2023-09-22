@@ -6,6 +6,7 @@ import (
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,57 @@ func CreateComment(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comment created", map[string]any{"comment": data})
+}
+
+func GetCommentsHandler(c *gin.Context) {
+	// Extract query parameters for pagination
+	page := c.DefaultQuery("page", "1")
+	perPage := c.DefaultQuery("per_page", "10")
+
+	// Convert page and perPage parameters to integers
+	pageInt, err := strconv.Atoi(page)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid page parameter")
+		return
+	}
+
+	perPageInt, err := strconv.Atoi(perPage)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid per_page parameter")
+		return
+	}
+
+	// Calculate the offset for pagination
+	offset := (pageInt - 1) * perPageInt
+
+	eventId := c.Param("event_id")
+
+	_, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		return
+	}
+
+	_, eventexist := models.GetEventByID(db.DB, eventId)
+	if eventexist != nil {
+		if eventexist.Error() == "record not found" {
+			response.Error(c, http.StatusNotFound, "Event doesn't exist")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "An error occurred")
+		return
+	}
+
+	comments, totalComments, err := services.GetComments(eventId, perPageInt, offset)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]interface{}{
+		"comments":      comments,
+		"total_comments": totalComments,
+	})
 }
 
 func UpdateComments(c *gin.Context) {
@@ -118,33 +170,6 @@ func GetComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.CommentResponse{"comment": comment})
 }
 
-func GetCommentsHandler(c *gin.Context) {
-	eventId := c.Param("event_id")
-
-	_, exists := c.Get("user")
-	if !exists {
-		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
-		return
-	}
-
-	_, eventexist := models.GetEventByID(db.DB, eventId)
-	if eventexist != nil {
-		if eventexist.Error() == "record not found" {
-			response.Error(c, http.StatusNotFound, "Event doesn't exist")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, "An error occured")
-		return
-	}
-
-	comments, err := services.GetComments(eventId)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
-		return
-	}
-
-	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comments": comments})
-}
 
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
