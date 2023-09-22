@@ -145,7 +145,7 @@ func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
 
-	result := db.DB.Where("id = ?", id).First(&group)
+	result := db.DB.Where("id = ?", id).Preload("Members.User").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil when the group is not found
