@@ -139,8 +139,19 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 
 	return groups, http.StatusOK, nil
 
-}
+func DeleteGroup(tx *gorm.DB, id string) error {
 
+	// Delete group with specified id.
+	db := tx.Delete(&models.Group{}, "group_id")
+	if db.Error != nil {
+		return db.Error
+	} else if db.RowsAffected < 1 {
+		return fmt.Errorf("group with id=%s doesn't exist", id)
+	}
+
+	return nil
+}
+  
 func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
