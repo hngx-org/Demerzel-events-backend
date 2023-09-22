@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
@@ -40,7 +41,7 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	data, err := services.CreateNewComment(&input, user.Id)
+	data, err := services.CreateNewComment(&input, user)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -49,7 +50,7 @@ func CreateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment created", map[string]any{"comment": data})
 }
 
-func UpdateComment(c *gin.Context) {
+func UpdateComments(c *gin.Context) {
 	commentId := c.Param("comment_id")
 	var updateReq models.UpdateComment
 
@@ -83,6 +84,34 @@ func UpdateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
 
+func GetCommentsHandler(c *gin.Context) {
+	eventId := c.Param("event_id")
+
+	_, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		return
+	}
+
+	_, eventexist := models.GetEventByID(db.DB, eventId)
+	if eventexist != nil {
+		if eventexist.Error() == "record not found" {
+			response.Error(c, http.StatusNotFound, "Event doesn't exist")
+			return
+		}
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	comments, err := services.GetComments(eventId)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comments": comments})
+}
+
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
 	if !exists {
@@ -104,4 +133,5 @@ func DeleteComment(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comment deleted successfully", nil)
+
 }
