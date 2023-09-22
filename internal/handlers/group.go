@@ -36,7 +36,7 @@ func CreateGroup(ctx *gin.Context) {
 		ctx,
 		http.StatusCreated,
 		"Group created successfully",
-		map[string]any{"group": newGroup},
+		newGroup,
 	)
 }
 
@@ -127,7 +127,6 @@ func UpdateGroup(c *gin.Context) {
 	response.Success(c, code, "Group updated successfully", data)
 }
 
-
 func ListGroups(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 
@@ -157,7 +156,6 @@ func ListGroups(c *gin.Context) {
 		"groups": groups,
 	})
 }
-
 
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
