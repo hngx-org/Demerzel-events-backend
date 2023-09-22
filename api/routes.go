@@ -41,6 +41,7 @@ func BuildRoutesHandler() *gin.Engine {
 	// apiRoutes.GET("groups/user", handlers.GetUserGroups)
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
 	apiRoutes.GET("/groups/:id", handlers.GetGroupById)
+	apiRoutes.DELETE("/groups/:id", handlers.DeleteGroup)
 	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
 	apiRoutes.POST("/groups/:id/unsubscribe", handlers.UnsubscribeFromGroup)
 	// apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
@@ -52,12 +53,20 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/users/:id", handlers.GetUserById)
 	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
 	apiRoutes.GET("/users", handlers.GetUsers)
+	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 
 	// Event Routes
 	eventRoutes := apiRoutes.Group("/events")
 	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
+
+	//comment routes
+	commentRoutes := apiRoutes.Group("/comments")
+	commentRoutes.POST("/", handlers.CreateComment)
+	commentRoutes.PUT("/:comment_id", handlers.UpdateComments)
+	commentRoutes.DELETE("/:comment_id", handlers.DeleteComment)
 
 	return r
 }
