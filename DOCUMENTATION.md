@@ -13,16 +13,16 @@
    * [API Health](#api-health)
    * [Authentication](#authentication)
    * [Groups](#groups)
-   * [Users]()
-   * [Events]()
+   * [Users](#users)
+   * [Events](#events)
    * [Comments]()
    * [Images](#images)
   
-* [Request and Response Formats]()
+* [Request and Response Formats](#request-and-response-format)
 
 ## Introduction
 
-...
+Welcome to team Demerzel Event API documentation. Our API is designed to empower your mobile app with the ability to seamlessly manage events, groups, and user interactions. With this API, you can effortlessly create, read, update, and delete events, allowing your users to stay engaged and informed. Additionally, users can create groups, subscribe to their favorite communities, leave comments on events, and express their interest in attending. Dive into our comprehensive documentation to unlock the full potential of enhancing user experiences with event management and community engagement in your app.
 
 ## API Usage and Features
 
@@ -655,3 +655,8 @@ header should be gotten from the response body.
          "message": "Unable to upload file: <error_message>" 
       }
       ```
+
+## Request and Response Format
+### Response:
+The Api Response follow the JSend format, whcih have a `status`, `data` and `message` key, the status falls under either `success` or `error` respectfully.  
+Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)
