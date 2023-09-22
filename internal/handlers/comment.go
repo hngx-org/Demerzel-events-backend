@@ -84,17 +84,22 @@ func UpdateComment(c *gin.Context) {
 }
 
 func GetComment(c *gin.Context) {
-	eventId := c.Param("eventid")
+	// eventId := c.Param("eventid")
 	commentId := c.Param("comment_id")
 
-	comment, err := services.GetCommentByEventIdAndCommentId(commentId, eventId)
+	_, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+	comment, err := services.GetCommentByCommentId(commentId)
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]*models.Comment{"comment": comment})
+	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.Comment{"comment": comment})
 }
 
 func DeleteComment(c *gin.Context) {
