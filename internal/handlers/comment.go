@@ -49,7 +49,7 @@ func CreateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment created", map[string]any{"comment": data})
 }
 
-func UpdateCommentHandler(c *gin.Context) {
+func UpdateComments(c *gin.Context) {
 	commentId := c.Param("comment_id")
 	var updateReq models.UpdateComment
 
@@ -87,13 +87,11 @@ func UpdateCommentHandler(c *gin.Context) {
 func GetCommentsHandler(c *gin.Context) {
 	eventId := c.Param("event_id")
 
-	rawUser, exists := c.Get("user")
+	_, exists := c.Get("user")
 	if !exists {
 		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
 		return
 	}
-
-
 
 	var commentSlice []*models.Comment
 	commentSlice, err := services.GetComments(eventId)
@@ -102,7 +100,7 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comment": commentSlice})
+	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comments": commentSlice})
 }
 
 func DeleteComment(c *gin.Context) {

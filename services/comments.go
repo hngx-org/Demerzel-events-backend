@@ -16,7 +16,7 @@ func CreateNewComment(newComment *models.NewComment, userId string) (*models.Com
 		Body:      newComment.Body,
 		Images:    newComment.Images,
 		EventId:   newComment.EventId,
-		UserId:    userId,
+		CreatorId: userId,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -38,7 +38,7 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 		return comment, result.Error // Return the actual error for other errors
 	}
 
-	if comment.UserId != userId {
+	if comment.CreatorId != userId {
 		return comment, errors.New("you are not authorized to update this comment")
 	}
 
@@ -51,7 +51,7 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 
 func GetComments(eventId string) ([]*models.Comment, error) {
 	var comments []*models.Comment
-	err := db.DB.Where("event_id = ?", eventId).Find(&comments).Error
+	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").Find(&comments).Error
 	if err != nil {
 		log.Println("Error fetching comments from db")
 		return comments, err
@@ -72,7 +72,7 @@ func DeleteCommentById(commentId string, userId string) error {
 		return result.Error // Return the actual error for other errors
 	}
 
-	if comment.UserId != userId {
+	if comment.CreatorId != userId {
 		return errors.New("you are not authorized to delete this comment")
 	}
 
