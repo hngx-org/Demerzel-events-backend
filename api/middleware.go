@@ -4,16 +4,17 @@ import (
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Error(c, http.StatusUnauthorized, "Authentication header is requires")
+			response.Error(c, http.StatusUnauthorized, "Authentication header is required")
 			c.Abort()
 			return
 		}
