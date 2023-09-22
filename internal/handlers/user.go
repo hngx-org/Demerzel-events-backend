@@ -84,3 +84,9 @@ func GetCurrentUser(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", user)
 }
+
+func LogoutUser(c *gin.Context) {
+	c.SetCookie("authorization", "", -1, "/", "", false, true)
+	response.Success(c, http.StatusOK, "logged out successfully", nil)
+	c.Redirect(200, "/") 
+}
