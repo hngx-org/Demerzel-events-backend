@@ -93,11 +93,7 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	_, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusBadRequest, "Invalid context user type")
-		return
-	}
+
 
 	var commentSlice []*models.Comment
 	commentSlice, err := services.GetComments(eventId)
@@ -115,7 +111,12 @@ func DeleteComment(c *gin.Context) {
 		return
 	}
 
-	
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
 	commentId := c.Param("comment_id")
 	err := services.DeleteCommentById(commentId, user.Id)
 	if err != nil {
