@@ -10,6 +10,7 @@ import (
 type Group struct {
 	ID        string      `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	Name      string      `json:"name" validate:"required"`
+	Image     string      `json:"image"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
 	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID"`

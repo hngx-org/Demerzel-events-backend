@@ -1,22 +1,34 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"mime/multipart"
 	"net/http"
+	"os"
 
+	"demerzel-events/dependencies/cloudinary"
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+
 	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
-	var requestBody struct {
+	type jsonData struct {
 		Name string `json:"name" binding:"required"`
 	}
+	
+	var requestBody struct {
+		File        *multipart.FileHeader `form:"file"`
+		GroupData 	jsonData `form:"jsonData"`
+	}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+	
+	
+	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
 			ctx,
 			http.StatusBadRequest,
@@ -25,8 +37,44 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
+	var photUrl string = ""
+	fileToUpload := requestBody.File
+
+	if fileToUpload != nil {
+
+		image, err:= fileToUpload.Open()
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+		}
+
+		buffer:= new(bytes.Buffer)
+		_, err = buffer.ReadFrom(image)
+
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, "Cannot process file:"+err.Error())
+			return
+		}
+
+		transport := cloudinary.Config{
+			ApiKey:    os.Getenv("CLOUDINARY_API_KEY"),
+			ApiSecret: os.Getenv("CLOUDINARY_API_SECRET"),
+			CloudName: os.Getenv("CLOUDINARY_CLOUD_NAME"),
+			BaseUrl:   os.Getenv("CLOUDINARY_BASE_URL"),
+		}
+
+		imageUrl, err:= transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
+
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, "Could not upload to file to bucket:"+err.Error())
+			return
+		}
+
+		photUrl = imageUrl
+	}
+
 	var newGroup models.Group
-	newGroup.Name = requestBody.Name
+	newGroup.Name = requestBody.GroupData.Name
+	newGroup.Image = photUrl
 
 	services.CreateGroup(&newGroup)
 
