@@ -103,7 +103,7 @@ func GetComment(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.Comment{"comment": comment})
+	response.Success(c, http.StatusOK, "Comment fetched successfully", map[string]*models.CommentResponse{"comment": comment})
 }
 
 func GetCommentsHandler(c *gin.Context) {
