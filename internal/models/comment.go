@@ -20,29 +20,18 @@ type Images []string
 type Comment struct {
 	Id        string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	Body      string    `json:"body" validate:"required,min=1"`
-	UserId    string    `json:"user_id"`
 	EventId   string    `json:"event_id"`
 	Images    Images    `json:"images" gorm:"type:TEXT"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
-	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
+	Creator   *User     `json:"creator" gorm:"foreignKey:CreatorId"`
+	CreatorId string    `json:"creator_id" gorm:"type:varchar(255)"`
 }
 
 type CommentCreator struct {
 	Id     string `gorm:"primaryKey;type:varchar(255)" json:"id"`
 	Name   string `gorm:"column:name" json:"name"`
 	Avatar string `gorm:"column:avatar" json:"avatar"`
-}
-
-type CommentResponse struct {
-	Id        string         `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Body      string         `json:"body" validate:"required,min=1"`
-	EventId   string         `json:"event_id"`
-	Images    Images         `json:"images" gorm:"type:TEXT"`
-	Creator   CommentCreator `json:"creator"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type UpdateComment struct {
