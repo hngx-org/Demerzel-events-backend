@@ -4,6 +4,7 @@ import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
+	"log"
 	"fmt"
 	"time"
 
@@ -46,6 +47,17 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 		return comment, err
 	}
 	return comment, nil
+}
+
+func GetComments(eventId string) ([]*models.Comment, error) {
+	var comments []*models.Comment
+	err := db.DB.Where("event_id = ?", eventId).Find(&comments).Error
+	if err != nil {
+		log.Println("Error fetching comments from db")
+		return comments, err
+	}
+
+	return comments, nil
 }
 
 func DeleteCommentById(commentId string, userId string) error {

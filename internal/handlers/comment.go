@@ -83,6 +83,31 @@ func UpdateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
 
+
+func GetCommentsHandler(c *gin.Context) {
+	eventId := c.Param("event_id")
+
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		return
+	}
+
+	_, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusBadRequest, "Invalid context user type")
+		return
+	}
+
+	var commentSlice []*models.Comment
+	commentSlice, err := services.GetComments(eventId)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comments Successfully retrieved", map[string]any{"comment": commentSlice})
+
 func DeleteComment(c *gin.Context) {
 	rawUser, exists := c.Get("user")
 	if !exists {
@@ -104,4 +129,5 @@ func DeleteComment(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Comment deleted successfully", nil)
+
 }
