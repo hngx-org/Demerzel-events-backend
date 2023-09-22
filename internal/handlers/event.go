@@ -5,9 +5,10 @@ import (
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GroupEventById(c *gin.Context) {
@@ -62,6 +63,17 @@ func CreateEventHandler(c *gin.Context) {
 
 	if reflect.ValueOf(input.Description).Kind() != reflect.String {
 		response.Error(c, http.StatusBadRequest, "Description is not a string")
+		return
+	}
+
+	// Check if thumbnail field is empty or is a string
+	if input.Thumbnail == "" {
+		response.Error(c, http.StatusBadRequest, "Thumbnail field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.Thumbnail).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "Thumbnail is not a string")
 		return
 	}
 
@@ -130,11 +142,16 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	createdEvent, err := models.CreateEvent(db.DB, &input)
+	createdGroupEvent, createdEvent, err := models.CreateEvent(db.DB, &input)
 
+	fmt.Print(createdGroupEvent)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if createdEvent == nil {
+		response.Success(c, http.StatusCreated, "Event and Group Created", map[string]interface{}{"event": createdGroupEvent})
 	}
 
 	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
