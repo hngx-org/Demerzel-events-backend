@@ -476,7 +476,7 @@ header should be gotten from the response body.
       }
 
 * **POST api/users/logout**
-   * **Summary*: Logout the current user
+   * **Summary**: Logout the current user
    * **Sample Request URL**: `{host}/api/users/logout`
    * **Response**:   
    Status Code: 200  
@@ -506,9 +506,11 @@ header should be gotten from the response body.
       Body:
       ```Json
       {
-         "status": "success",
-         "url": "cloudinary_url",
-         "message": "File uploaded"
+         "status": "success"
+         "data": {
+            "url": "https://res.cloudinary.com/jamesjohn/image/upload/v1695389554/1695389551-1660372349874.jpeg.jpg"
+         },
+         "message": "File uploaded",
       }
       ```
       Status Code: 400  
