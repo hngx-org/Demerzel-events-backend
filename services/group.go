@@ -19,6 +19,7 @@ func CreateGroup(group *models.Group) (*models.Group, error) {
 }
 
 func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
+	var user models.User
 	var userGroup models.UserGroup
 
 	result := db.DB.Where("group_id = ?", groupID).Where("user_id = ?", userID).First(&userGroup)
@@ -33,6 +34,14 @@ func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
 		if result.Error != nil {
 			return nil, result.Error
 		}
+
+		// get user from database
+		user.Id = userID
+		if err := user.GetUserByID(db.DB); err != nil {
+			return nil, err
+		}
+		// assign the user gotten to the UserGroup struct User field
+		userGroup.User = user
 
 		return &userGroup, nil
 	}
