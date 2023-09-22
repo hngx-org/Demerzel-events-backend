@@ -21,6 +21,8 @@ type UserGroup struct {
 	GroupID   string    `json:"group_id" gorm:"type:varchar(255)"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+
+	User User `json:"user" gorm:"foreignkey:UserID;association_foreignkey:ID"`
 }
 
 type UpdateGroupRequest struct {
