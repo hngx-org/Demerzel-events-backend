@@ -132,26 +132,6 @@ func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse
 	return commentResponses, int(totalComments), nil
 }
 
-func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
-	var comment *models.Comment
-	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("coomment doesn't exist")
-		}
-		return nil, result.Error // Return the actual error for other errors
-	}
-
-	if comment.CreatorId != userId {
-		return comment, errors.New("you are not authorized to update this comment")
-	}
-
-	comment.Body = updateReq.Body
-	if err := db.DB.Save(&comment).Error; err != nil {
-		return comment, err
-	}
-	return comment, nil
-}
 
 func DeleteCommentById(commentId string, userId string) error {
 	var comment models.Comment
