@@ -138,6 +138,7 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	}
 
 	return groups, http.StatusOK, nil
+}
 
 func DeleteGroup(tx *gorm.DB, id string) error {
 
@@ -151,7 +152,7 @@ func DeleteGroup(tx *gorm.DB, id string) error {
 
 	return nil
 }
-  
+
 func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
