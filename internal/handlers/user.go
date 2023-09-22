@@ -6,8 +6,9 @@ import (
 	"demerzel-events/pkg/types"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UpdateUser(c *gin.Context) {
@@ -17,7 +18,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	user, ok := rawUser.(models.User)
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
 		return
@@ -29,14 +30,18 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	services.UpdateUserById(&user, updateData)
+	err := services.UpdateUserById(user, updateData)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "A server error occurred")
+		return
+	}
 	response.Success(c, http.StatusOK, "User updated successfully", nil)
 }
 
 func GetUserById(c *gin.Context) {
-	id := c.DefaultQuery("id", "")
+	id := c.Param("id")
 	if id == "" {
-		response.Error(c, http.StatusBadRequest, "User ID cannot be empty")
+		response.Error(c, http.StatusBadRequest, "User ID is required")
 		return
 	}
 
@@ -52,4 +57,37 @@ func GetUserById(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", map[string]any{"user": user})
+}
+
+func GetUsers(c *gin.Context) {
+
+	users, err := services.GetUsers()
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "An error occurred while retrieving users")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{"user": users})
+}
+
+func GetCurrentUser(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User retrieved successfully", user)
+}
+
+func LogoutUser(c *gin.Context) {
+	c.SetCookie("authorization", "", -1, "/", "", false, true)
+	response.Success(c, http.StatusOK, "logged out successfully", nil)
+	c.Redirect(200, "/")
 }

@@ -1,24 +1,34 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
+	"mime/multipart"
 	"net/http"
+	"os"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
+	"demerzel-events/dependencies/cloudinary"
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
-	var requestBody struct {
+	type jsonData struct {
 		Name string `json:"name" binding:"required"`
 	}
+	
+	var requestBody struct {
+		File        *multipart.FileHeader `form:"file"`
+		GroupData 	jsonData `form:"jsonData"`
+	}
 
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+	
+	
+	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
 			ctx,
 			http.StatusBadRequest,
@@ -27,8 +37,44 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
+	var photUrl string = ""
+	fileToUpload := requestBody.File
+
+	if fileToUpload != nil {
+
+		image, err:= fileToUpload.Open()
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, err.Error())
+		}
+
+		buffer:= new(bytes.Buffer)
+		_, err = buffer.ReadFrom(image)
+
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, "Cannot process file:"+err.Error())
+			return
+		}
+
+		transport := cloudinary.Config{
+			ApiKey:    os.Getenv("CLOUDINARY_API_KEY"),
+			ApiSecret: os.Getenv("CLOUDINARY_API_SECRET"),
+			CloudName: os.Getenv("CLOUDINARY_CLOUD_NAME"),
+			BaseUrl:   os.Getenv("CLOUDINARY_BASE_URL"),
+		}
+
+		imageUrl, err:= transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
+
+		if err != nil {
+			response.Error(ctx, http.StatusBadRequest, "Could not upload to file to bucket:"+err.Error())
+			return
+		}
+
+		photUrl = imageUrl
+	}
+
 	var newGroup models.Group
-	newGroup.Name = requestBody.Name
+	newGroup.Name = requestBody.GroupData.Name
+	newGroup.Image = photUrl
 
 	services.CreateGroup(&newGroup)
 
@@ -36,7 +82,7 @@ func CreateGroup(ctx *gin.Context) {
 		ctx,
 		http.StatusCreated,
 		"Group created successfully",
-		map[string]any{"group": newGroup},
+		newGroup,
 	)
 }
 
@@ -56,20 +102,20 @@ func SubscribeUserToGroup(c *gin.Context) {
 		return
 	}
 
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	data, err := services.SubscribeUserToGroup(user.Id, groupID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(
-				c,
-				http.StatusNotFound,
-				"Invalid user or group ID. Please check the values and try again",
-			)
-			return
-		} else if err.Error() == "user already exists in group" {
-			response.Error(c, http.StatusConflict, "User already subscribed to group")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, "Failed to subscribe user to group")
+		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -90,19 +136,24 @@ func UnsubscribeFromGroup(c *gin.Context) {
 		return
 	}
 
-	err := services.DeleteUserGroup(user.Id, string(groupID))
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// User is not subscribed to this group, no need to unsubscribe
-			response.Error(c, http.StatusNotFound, "User not subscribed to this group")
-			return
-		}
-
-		response.Error(c, http.StatusConflict, "Failed to unsubscribe user from group")
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
 		return
 	}
 
-	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", map[string]any{})
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = services.DeleteUserGroup(user.Id, groupID)
+	if err != nil {
+		response.Error(c, http.StatusConflict, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", nil)
 }
 
 func UpdateGroup(c *gin.Context) {
@@ -152,9 +203,7 @@ func ListGroups(c *gin.Context) {
 		message = "Groups retrieved successfully"
 	}
 
-	response.Success(c, http.StatusOK, message, map[string]any{
-		"groups": groups,
-	})
+	response.Success(c, http.StatusOK, message, groups)
 }
 
 // GetUserGroups returns all group this user belongs to
@@ -173,12 +222,33 @@ func GetUserGroups(c *gin.Context) {
 		return
 	}
 
-	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	userGroups, code, err := services.GetGroupsByUserId(user.Id)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
+	response.Success(c, code, "Fetched all user groups", userGroups)
+}
+
+func GetGroupById(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.Error(c, http.StatusBadRequest, "Group ID is required")
+		return
+	}
+
+	group, err := services.GetGroupById(id)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Group retrieved successfully", group)
 }
 
 func DeleteGroup(c *gin.Context) {
