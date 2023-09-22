@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -109,7 +110,6 @@ func UpdateGroupService(
 	return http.StatusOK, group, nil
 }
 
-
 // query filter struct
 type Filter struct {
 	Search struct {
@@ -141,7 +141,6 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	return groups, nil
 }
 
-
 func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if _, err := GetUserById(userId); err != nil {
 		return nil, http.StatusNotFound, err
@@ -155,7 +154,22 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	if res.Error != nil {
 		return nil, http.StatusNotFound, res.Error
 	}
-	
-	return groups,http.StatusOK, nil
 
+	return groups, http.StatusOK, nil
+
+}
+
+func GetGroupById(id string) (*models.Group, error) {
+	var group models.Group
+	fmt.Printf("group id %s", id)
+
+	result := db.DB.Where("id = ?", id).First(&group)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil // Return nil when the group is not found
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	return &group, nil
 }

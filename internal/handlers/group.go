@@ -36,7 +36,7 @@ func CreateGroup(ctx *gin.Context) {
 		ctx,
 		http.StatusCreated,
 		"Group created successfully",
-		map[string]any{"group": newGroup},
+		newGroup,
 	)
 }
 
@@ -127,7 +127,6 @@ func UpdateGroup(c *gin.Context) {
 	response.Success(c, code, "Group updated successfully", data)
 }
 
-
 func ListGroups(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 
@@ -156,7 +155,6 @@ func ListGroups(c *gin.Context) {
 	response.Success(c, http.StatusOK, message, groups)
 }
 
-
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
 
@@ -179,4 +177,25 @@ func GetUserGroups(c *gin.Context) {
 		return
 	}
 	response.Success(c, code, "Fetched all user groups", userGroup)
+}
+
+func GetGroupById(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.Error(c, http.StatusBadRequest, "Group ID is required")
+		return
+	}
+
+	group, err := services.GetGroupById(id)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Group retrieved successfully", group)
 }
