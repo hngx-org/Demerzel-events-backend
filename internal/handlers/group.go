@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -56,20 +54,20 @@ func SubscribeUserToGroup(c *gin.Context) {
 		return
 	}
 
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	data, err := services.SubscribeUserToGroup(user.Id, groupID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(
-				c,
-				http.StatusNotFound,
-				"Invalid user or group ID. Please check the values and try again",
-			)
-			return
-		} else if err.Error() == "user already exists in group" {
-			response.Error(c, http.StatusConflict, "User already subscribed to group")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, "Failed to subscribe user to group")
+		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -90,15 +88,20 @@ func UnsubscribeFromGroup(c *gin.Context) {
 		return
 	}
 
-	err := services.DeleteUserGroup(user.Id, string(groupID))
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// User is not subscribed to this group, no need to unsubscribe
-			response.Error(c, http.StatusNotFound, "User not subscribed to this group")
-			return
-		}
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
 
-		response.Error(c, http.StatusConflict, "Failed to unsubscribe user from group")
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = services.DeleteUserGroup(user.Id, groupID)
+	if err != nil {
+		response.Error(c, http.StatusConflict, err.Error())
 		return
 	}
 
@@ -171,12 +174,12 @@ func GetUserGroups(c *gin.Context) {
 		return
 	}
 
-	userGroup, code, err := services.GetGroupsByUserId(user.Id)
+	userGroups, code, err := services.GetGroupsByUserId(user.Id)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", userGroup)
+	response.Success(c, code, "Fetched all user groups", userGroups)
 }
 
 func GetGroupById(c *gin.Context) {
