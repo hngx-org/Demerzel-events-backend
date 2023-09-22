@@ -20,14 +20,12 @@ func CreateGroup(ctx *gin.Context) {
 	type jsonData struct {
 		Name string `json:"name" binding:"required"`
 	}
-	
+
 	var requestBody struct {
-		File        *multipart.FileHeader `form:"file"`
-		GroupData 	jsonData `form:"jsonData"`
+		File      *multipart.FileHeader `form:"file"`
+		GroupData jsonData              `form:"jsonData"`
 	}
 
-	
-	
 	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
 			ctx,
@@ -42,12 +40,12 @@ func CreateGroup(ctx *gin.Context) {
 
 	if fileToUpload != nil {
 
-		image, err:= fileToUpload.Open()
+		image, err := fileToUpload.Open()
 		if err != nil {
 			response.Error(ctx, http.StatusBadRequest, err.Error())
 		}
 
-		buffer:= new(bytes.Buffer)
+		buffer := new(bytes.Buffer)
 		_, err = buffer.ReadFrom(image)
 
 		if err != nil {
@@ -62,7 +60,7 @@ func CreateGroup(ctx *gin.Context) {
 			BaseUrl:   os.Getenv("CLOUDINARY_BASE_URL"),
 		}
 
-		imageUrl, err:= transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
+		imageUrl, err := transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
 
 		if err != nil {
 			response.Error(ctx, http.StatusBadRequest, "Could not upload to file to bucket:"+err.Error())
@@ -238,13 +236,8 @@ func GetGroupById(c *gin.Context) {
 	}
 
 	group, err := services.GetGroupById(id)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 
