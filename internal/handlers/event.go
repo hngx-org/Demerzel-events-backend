@@ -4,6 +4,7 @@ import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
+	"demerzel-events/services"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -189,4 +190,52 @@ func ListEventsHandler(c *gin.Context) {
 	response.Success(c, http.StatusOK, "All Events", map[string]interface{}{
 		"events": events,
 	})
+}
+
+func ListFriendsEventsHandler(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	userGroups, _, err := services.GetGroupsByUserId(user.Id)
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to get groups which user belongs to:"+err.Error())
+		return
+	}
+
+	if len(userGroups) == 0 {
+		events := make([]models.Event, 0)
+		response.Success(c, http.StatusOK, "Friend Events", map[string]interface{}{
+			"events": events,
+		})
+
+		return
+	}
+
+	var userGroupIds []string
+	for _, group := range userGroups {
+		userGroupIds = append(userGroupIds, group.ID)
+	}
+
+	events, err := models.ListEventsInGroups(db.DB, userGroupIds)
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to get events: "+err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Events", map[string]interface{}{
+		"events": events,
+	})
+
+	return
 }
