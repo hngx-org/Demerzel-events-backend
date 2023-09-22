@@ -61,9 +61,9 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	return comment, nil
 }
 
-func GetCommentByCommentId(commentId string) (*models.Comment, error) {
+func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
 	var comment *models.Comment
-	err := db.DB.Where("id = ?", commentId).First(&comment).Error
+	err := db.DB.Where("id = ?", commentId).Preload("Creator").First(&comment).Error
 	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -72,7 +72,21 @@ func GetCommentByCommentId(commentId string) (*models.Comment, error) {
 		return nil, err
 	}
 
-	return comment, nil
+	commentResponse := &models.CommentResponse{
+		Id:        comment.Id,
+		Body:      comment.Body,
+		Images:    comment.Images,
+		CreatedAt: comment.CreatedAt,
+		UpdatedAt: comment.UpdatedAt,
+		EventId:   comment.EventId,
+		Creator: models.CommentCreator{
+			Id:     comment.Creator.Id,
+			Name:   comment.Creator.Name,
+			Avatar: comment.Creator.Avatar,
+		},
+	}
+
+	return commentResponse, nil
 }
 
 func GetComments(eventId string) ([]*models.CommentResponse, error) {
