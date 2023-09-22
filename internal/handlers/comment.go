@@ -115,12 +115,7 @@ func DeleteComment(c *gin.Context) {
 		return
 	}
 
-	user, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusInternalServerError, "An error occured")
-		return
-	}
-
+	
 	commentId := c.Param("comment_id")
 	err := services.DeleteCommentById(commentId, user.Id)
 	if err != nil {
