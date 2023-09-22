@@ -40,7 +40,6 @@ func CreateNewComment(newComment *models.NewComment, user *models.User) (*models
 	return commentRespnse, nil
 }
 
-
 func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
 	var comment *models.Comment
 	result := db.DB.Where("id = ?", updateReq.Id).First(&comment)
@@ -131,7 +130,6 @@ func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse
 
 	return commentResponses, int(totalComments), nil
 }
-
 
 func DeleteCommentById(commentId string, userId string) error {
 	var comment models.Comment
