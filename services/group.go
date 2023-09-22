@@ -1,14 +1,13 @@
 package services
 
 import (
+	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"gorm.io/gorm"
-
-	"demerzel-events/internal/db"
-	"demerzel-events/internal/models"
 )
 
 func CreateGroup(group *models.Group) (*models.Group, error) {
@@ -148,10 +147,10 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 
 	return groups, http.StatusOK, nil
 }
-func DeleteGroup(tx *gorm.DB, id string) error {
 
+func DeleteGroup(tx *gorm.DB, id string) error {
 	// Delete group with specified id.
-	db := tx.Delete(&models.Group{}, "group_id")
+	db := tx.Delete(&models.Group{}, "id = ?", id)
 	if db.Error != nil {
 		return db.Error
 	} else if db.RowsAffected < 1 {
