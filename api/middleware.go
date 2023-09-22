@@ -14,7 +14,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Error(c, http.StatusUnauthorized, "Authentication header is requires")
+			response.Error(c, http.StatusUnauthorized, "Authentication header is required")
 			c.Abort()
 			return
 		}
