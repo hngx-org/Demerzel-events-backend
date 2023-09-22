@@ -56,20 +56,20 @@ func SubscribeUserToGroup(c *gin.Context) {
 		return
 	}
 
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	data, err := services.SubscribeUserToGroup(user.Id, groupID)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			response.Error(
-				c,
-				http.StatusNotFound,
-				"Invalid user or group ID. Please check the values and try again",
-			)
-			return
-		} else if err.Error() == "user already exists in group" {
-			response.Error(c, http.StatusConflict, "User already subscribed to group")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, "Failed to subscribe user to group")
+		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
