@@ -13,16 +13,16 @@
    * [API Health](#api-health)
    * [Authentication](#authentication)
    * [Groups](#groups)
-   * [Users]()
-   * [Events]()
+   * [Users](#users)
+   * [Events](#events)
    * [Comments]()
    * [Images](#images)
   
-* [Request and Response Formats]()
+* [Request and Response Formats](#request-and-response-format)
 
 ## Introduction
 
-...
+Welcome to team Demerzel Event API documentation. Our API is designed to empower your mobile app with the ability to seamlessly manage events, groups, and user interactions. With this API, you can effortlessly create, read, update, and delete events, allowing your users to stay engaged and informed. Additionally, users can create groups, subscribe to their favorite communities, leave comments on events, and express their interest in attending. Dive into our comprehensive documentation to unlock the full potential of enhancing user experiences with event management and community engagement in your app.
 
 ## API Usage and Features
 
@@ -490,6 +490,140 @@ header should be gotten from the response body.
       ```
 
 ### Events
+* **POST /api/event/**
+   * **Summary**: Create an Event
+   * **Description**: Creates a new Event and returns it, supply the title of the event, event location, event description, Start Date, End Date, Start Time and End Time.
+   * **Sample Request URL**: `{host}/event`
+   * **Parameters**:  
+   Body:  
+      ```Json
+      {
+         "CreatorId": "user_uuid",
+         "Thumbnail": "thumbnail",
+         "Location": "location",
+         "Title": "title",
+         "Description": "event_description",
+         "Start_Date": "2023-10-01",
+         "End_Date": "2023-10-01",
+         "Start_Time": "16:00",
+         "End_Time": "18:00"
+      }
+      ```
+   * **Response**:  
+   Status Code: 200    
+   Body:
+   ```Json
+   {
+      "data": {
+         "event": {
+               "id": "d7515060-9276-40f0-a294-6f64c6cead54",
+               "creator_id": "664f1610-b0a0-45bc-9807-96ea7d1872af",
+               "thumbnail": "",
+               "location": "location",
+               "title": "event",
+               "description": "event_description",
+               "start_date": "2023-10-01",
+               "end_date": "2023-10-01",
+               "start_time": "16:00",
+               "end_time": "18:00",
+               "created_at": "2023-09-22T14:52:54.785Z",
+               "updated_at": "2023-09-22T14:52:54.785Z",
+               "creator": null
+         }
+      },
+      "message": "Event Created",
+      "status": "success"
+   }
+   ```
+* **GET api/events**
+   * **Summary**: Get a list of all Events
+   * **Sample Request URL**: `{host}/api/events`
+   * **Response**:  
+   Status Code: 200  
+   Body:
+   ```Json
+   {
+      "data": {
+         "events": [
+               {
+                  "id": "3d5c9a49-a918-4421-9ce0-e4e15abd3389",
+                  "creator_id": "a6d0f5bf-b923-47a5-8406-746551dca395",
+                  "thumbnail": "",
+                  "location": "Uyo, Nigeria",
+                  "title": "Event Two",
+                  "description": "event_description",
+                  "start_date": "2023-09-21",
+                  "end_date": "2023-09-25",
+                  "start_time": "15:1",
+                  "end_time": "17:1",
+                  "created_at": "2023-09-22T14:01:22.326Z",
+                  "updated_at": "2023-09-22T14:01:22.326Z",
+                  "creator": {
+                     "id": "a6d0f5bf-b923-47a5-8406-746551dca395",
+                     "name": "user_name",
+                     "email": "example@gmail.com",
+                     "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJ9wGidl0HuJH6tw3cg42Zvd_OoNUbfSaiPg3VDED1aGpI=s96-c"
+                  }
+               }
+         ]
+      },
+      "message": "All Events",
+      "status": "success"
+   }
+* **GET api/events/{id}**
+   * **Summary**: Fetch an Event by Id
+   * **Sample Request URL**: `{host}/api/events/d7515060-9276-40f0-a294-6f64c6cead54
+   * **Response**:   
+   Status Code: 200  
+   Body: 
+      ```Json
+      {
+         "data": {
+            "events": [
+                  {
+                     "id": "3d5c9a49-a918-4421-9ce0-e4e15abd3389",
+                     "creator_id": "a6d0f5bf-b923-47a5-8406-746551dca395",
+                     "thumbnail": "",
+                     "location": "Uyo, Nigeria",
+                     "title": "Event Two",
+                     "description": "event_description",
+                     "start_date": "2023-09-21",
+                     "end_date": "2023-09-25",
+                     "start_time": "15:1",
+                     "end_time": "17:1",
+                     "created_at": "2023-09-22T14:01:22.326Z",
+                     "updated_at": "2023-09-22T14:01:22.326Z",
+                     "creator": {
+                        "id": "a6d0f5bf-b923-47a5-8406-746551dca395",
+                        "name": "user_name",
+                        "email": "example@gmail.com",
+                        "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJ9wGidl0HuJH6tw3cg42Zvd_OoNUbfSaiPg3VDED1aGpI=s96-c"
+                     }
+                  }
+            ]
+         },
+         "message": "All Events",
+         "status": "success"
+      }
+      ```
+
+* **GET api/events/comments/{id}**
+   * **Summary**: Fetch all comments tied to an event.
+   * **Sample Request URL**: `{host}/api/events/comments/d7515060-9276-40f0-a294-6f64c6cead54`
+   * **Response**:  
+   Status Code: 200  
+   Body:
+      ```Json
+      {
+         "data": {
+            "comments": []
+         },
+         "message": "Comments Successfully retrieved",
+         "status": "success"
+      }
+      ```
+
+
 
 ### Images
 * **POST api/images/upload**
@@ -521,3 +655,8 @@ header should be gotten from the response body.
          "message": "Unable to upload file: <error_message>" 
       }
       ```
+
+## Request and Response Format
+### Response:
+The Api Response follow the JSend format, whcih have a `status`, `data` and `message` key, the status falls under either `success` or `error` respectfully.  
+Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)

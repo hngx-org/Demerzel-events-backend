@@ -62,6 +62,7 @@ func BuildRoutesHandler() *gin.Engine {
 	eventRoutes.POST("", handlers.CreateEventHandler)
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
 	eventRoutes.POST("/upload", handlers.UploadFileHandler)
+	// Get events in group returns bad data.
 	eventRoutes.GET("/group/:id/", handlers.GroupEventById)
 
 	//comment routes
