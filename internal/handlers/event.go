@@ -15,7 +15,7 @@ func GroupEventById(c *gin.Context) {
 	id := c.Param("id")
 
     group := models.Group{
-        Id: id,	
+        ID: id,	
 	}
 
 	result, err := group.GetGroupEvent(db.DB)
