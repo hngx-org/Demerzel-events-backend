@@ -39,16 +39,20 @@ func (c *Comment) BeforeCreate(tx *gorm.DB) error {
 
 func (o *Images) Scan(src any) error {
 	bytes, ok := src.([]byte)
+
 	if !ok {
 		return errors.New("src value cannot cast to []byte")
 	}
+
 	*o = strings.Split(string(bytes), ",")
 	return nil
 }
 
 func (o Images) Value() (driver.Value, error) {
+
 	if len(o) == 0 {
 		return nil, nil
 	}
+
 	return strings.Join(o, ","), nil
 }
