@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
-
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -90,15 +88,20 @@ func UnsubscribeFromGroup(c *gin.Context) {
 		return
 	}
 
-	err := services.DeleteUserGroup(user.Id, string(groupID))
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// User is not subscribed to this group, no need to unsubscribe
-			response.Error(c, http.StatusNotFound, "User not subscribed to this group")
-			return
-		}
+	group, err := services.GetGroupById(groupID)
+	if group == nil {
+		response.Error(c, http.StatusNotFound, "Group does not exist")
+		return
+	}
 
-		response.Error(c, http.StatusConflict, "Failed to unsubscribe user from group")
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = services.DeleteUserGroup(user.Id, groupID)
+	if err != nil {
+		response.Error(c, http.StatusConflict, err.Error())
 		return
 	}
 
@@ -152,7 +155,9 @@ func ListGroups(c *gin.Context) {
 		message = "Groups retrieved successfully"
 	}
 
-	response.Success(c, http.StatusOK, message, groups)
+	response.Success(c, http.StatusOK, message, map[string]any{
+		"groups": groups,
+	})
 }
 
 // GetUserGroups returns all group this user belongs to
@@ -176,7 +181,7 @@ func GetUserGroups(c *gin.Context) {
 		response.Error(c, code, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", userGroup)
+	response.Success(c, code, "Fetched all user groups", map[string]any{"groups": userGroup})
 }
 
 func GetGroupById(c *gin.Context) {

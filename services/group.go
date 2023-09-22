@@ -46,15 +46,12 @@ func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
 
 func DeleteUserGroup(userID, groupID string) error {
 	var userGroup models.UserGroup
-
-	// Find the UserGroup by user and group IDs
-	result := db.DB.Where(&models.UserGroup{
-		UserID:  userID,
-		GroupID: groupID,
-	}).First(&userGroup)
-
+	result := db.DB.Where("group_id = ?", groupID).Where("user_id = ?", userID).First(&userGroup)
 	if result.Error != nil {
-		return result.Error // Return the actual error for other errors
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("user not subscribed to group")
+		}
+		return result.Error
 	}
 
 	// Delete the UserGroup
