@@ -10,6 +10,27 @@ import (
 	"reflect"
 )
 
+func GroupEventById(c *gin.Context) {
+	
+	id := c.Param("id")
+
+    group := models.Group{
+        ID: id,	
+	}
+
+	result, err := group.GetGroupEvent(db.DB)
+
+	if err != nil {
+		response.Error(c, 500, "Can't process your request")
+		return
+	}
+
+	res := make(map[string]interface{}) 
+	res["Result"] = result
+
+	response.Success(c,200, "List of events",res)
+}
+
 func CreateEventHandler(c *gin.Context) {
 	var input models.NewEvent
 
