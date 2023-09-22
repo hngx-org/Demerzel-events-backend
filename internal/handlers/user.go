@@ -6,8 +6,9 @@ import (
 	"demerzel-events/pkg/types"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UpdateUser(c *gin.Context) {
@@ -38,9 +39,9 @@ func UpdateUser(c *gin.Context) {
 }
 
 func GetUserById(c *gin.Context) {
-	id := c.DefaultQuery("id", "")
+	id := c.Param("id")
 	if id == "" {
-		response.Error(c, http.StatusBadRequest, "User ID cannot be empty")
+		response.Error(c, http.StatusBadRequest, "User ID is required")
 		return
 	}
 
@@ -83,4 +84,10 @@ func GetCurrentUser(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "User retrieved successfully", user)
+}
+
+func LogoutUser(c *gin.Context) {
+	c.SetCookie("authorization", "", -1, "/", "", false, true)
+	response.Success(c, http.StatusOK, "logged out successfully", nil)
+	c.Redirect(200, "/")
 }
