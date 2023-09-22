@@ -56,13 +56,14 @@ func GetCommentByCommentId(commentId string) (*models.Comment, error) {
 	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return comment, nil
+			return nil, err
 		}
-		return comment, err
+		return nil, err
 	}
 
-	if comment.Id == "" {
-		return nil, errors.New("comment does not exist")
+	if comment.Id == "" || comment.EventId == "" || comment.UserId == "" {
+		return comment, errors.New("comment does not exist")
+
 	}
 
 	return comment, nil

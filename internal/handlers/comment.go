@@ -105,10 +105,11 @@ func GetComment(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
-	comment, err := services.GetCommentByCommentId(commentId)
 
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+	comment, commentErr := services.GetCommentByCommentId(commentId)
+
+	if commentErr != nil {
+		response.Error(c, http.StatusBadRequest, commentErr.Error())
 		return
 	}
 
