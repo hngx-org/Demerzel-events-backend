@@ -202,3 +202,19 @@ func GetGroupById(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "Group retrieved successfully", group)
 }
+
+func DeleteGroup(c *gin.Context) {
+	id := c.Params.ByName("id")
+	if id == "" {
+		response.Error(c, http.StatusBadRequest, "Please provide a valid group id")
+		return
+	}
+	err := services.DeleteGroup(db.DB, id)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s deleted successfully", id), nil)
+
+}
