@@ -20,6 +20,8 @@ func CreateNewComment(newComment *models.NewComment, userId string) (*models.Com
 		UpdatedAt: time.Now(),
 	}
 
+	// result := db.DB.Where("event_id = ?",newComment.EventId).Error
+
 	if err := db.DB.Create(&comment).Error; err != nil {
 		return nil, err
 	}
@@ -49,13 +51,9 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 }
 
 func GetCommentByCommentId(commentId string) (*models.Comment, error) {
-
 	var comment *models.Comment
-
 	err := db.DB.Where("id = ?", commentId).First(&comment).Error
-
 	// err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
-
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return comment, nil

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
@@ -37,6 +38,13 @@ func CreateComment(c *gin.Context) {
 
 	if strings.TrimSpace(input.Body) == "" {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
+		return
+	}
+
+	_, eventErr := models.GetEventByID(db.DB, input.EventId)
+
+	if eventErr != nil {
+		response.Error(c, http.StatusBadRequest, "event does not exist to comment on")
 		return
 	}
 
