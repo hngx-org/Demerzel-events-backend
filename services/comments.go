@@ -5,16 +5,26 @@ import (
 	"demerzel-events/internal/models"
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
 
-func CreateNewComment(comment *models.Comment) (*models.Comment, error) {
-	if err := db.DB.Create(comment).Error; err != nil {
+func CreateNewComment(newComment *models.NewComment, userId string) (*models.Comment, error) {
+	comment := models.Comment{
+		Body:      newComment.Body,
+		Images:    newComment.Images,
+		EventId:   newComment.EventId,
+		UserId:    userId,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := db.DB.Create(&comment).Error; err != nil {
 		return nil, err
 	}
 
-	return comment, nil
+	return &comment, nil
 }
 
 func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {

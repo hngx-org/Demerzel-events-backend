@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,9 +15,7 @@ import (
 
 // To-Do
 // Check if event id is valid before creating comment
-// Add images when images endpoint is working
 func CreateComment(c *gin.Context) {
-	eventId := c.Param("event_id")
 	rawUser, exists := c.Get("user")
 	if !exists {
 		response.Error(c, http.StatusInternalServerError, "An error occured")
@@ -32,27 +28,19 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	var newComment models.Comment
+	var input models.NewComment
 
-	if err := c.BindJSON(&newComment); err != nil {
+	if err := c.BindJSON(&input); err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
-	if strings.TrimSpace(newComment.Body) == "" {
+	if strings.TrimSpace(input.Body) == "" {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
-	newComment.UserId = user.Id
-	newComment.Body = strings.TrimSpace(newComment.Body)
-	newComment.CreatedAt = time.Now()
-	newComment.UpdatedAt = time.Now()
-	newComment.EventId = eventId
-	newComment.Images = nil // Would fix this once images are working, should be default to nil for now
-	newComment.BeforeCreate(db.DB)
-
-	data, err := services.CreateNewComment(&newComment)
+	data, err := services.CreateNewComment(&input, user.Id)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
