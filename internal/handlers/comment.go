@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,43 +15,32 @@ import (
 
 // To-Do
 // Check if event id is valid before creating comment
-// Add images when images endpoint is working
 func CreateComment(c *gin.Context) {
-	eventId := c.Param("event_id")
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, http.StatusInternalServerError, "error: unable to retrieve user from context")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
 	user, ok := rawUser.(*models.User)
-
 	if !ok {
-		response.Error(c, http.StatusInternalServerError, "error: invalid user type in context")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
-	var newComment models.Comment
+	var input models.NewComment
 
-	if err := c.BindJSON(&newComment); err != nil {
+	if err := c.BindJSON(&input); err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
-	if strings.TrimSpace(newComment.Body) == "" {
+	if strings.TrimSpace(input.Body) == "" {
 		response.Error(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
 
-	newComment.UserId = user.Id
-	newComment.Body = strings.TrimSpace(newComment.Body)
-	newComment.CreatedAt = time.Now()
-	newComment.UpdatedAt = time.Now()
-	newComment.EventId = eventId
-	newComment.Images = nil // Would fix this once images are working, should be default to nil for now
-	newComment.BeforeCreate(db.DB)
-
-	data, err := services.CreateNewComment(&newComment)
+	data, err := services.CreateNewComment(&input, user.Id)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -70,13 +57,13 @@ func UpdateComment(c *gin.Context) {
 
 	rawUser, exists := c.Get("user")
 	if !exists {
-		response.Error(c, http.StatusBadRequest, "An error occurred while creating account")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
 	user, ok := rawUser.(*models.User)
 	if !ok {
-		response.Error(c, http.StatusBadRequest, "Invalid context user type")
+		response.Error(c, http.StatusInternalServerError, "An error occured")
 		return
 	}
 
@@ -96,17 +83,39 @@ func UpdateComment(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]any{"comment": data})
 }
 
-func GetComments(c *gin.Context) {
-	eventId := c.Param("event_id")
+func GetComment(c *gin.Context) {
+	eventId := c.Param("eventid")
+	commentId := c.Param("comment_id")
 
-	var Comments []*models.Comment
-
-	result, err := services.GetComments(eventId, Comments)
+	comment, err := services.GetCommentByEventIdAndCommentId(commentId, eventId)
 
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Comments fetched successfully", map[string][]*models.Comment{"comments": result})
+	response.Success(c, http.StatusOK, "Comment updated successfully", map[string]*models.Comment{"comment": comment})
+}
+
+func DeleteComment(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "An error occured")
+		return
+	}
+
+	commentId := c.Param("comment_id")
+	err := services.DeleteCommentById(commentId, user.Id)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Comment deleted successfully", nil)
 }

@@ -4,16 +4,27 @@ import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
+	"fmt"
+	"time"
 
 	"gorm.io/gorm"
 )
 
-func CreateNewComment(comment *models.Comment) (*models.Comment, error) {
-	if err := db.DB.Create(comment).Error; err != nil {
+func CreateNewComment(newComment *models.NewComment, userId string) (*models.Comment, error) {
+	comment := models.Comment{
+		Body:      newComment.Body,
+		Images:    newComment.Images,
+		EventId:   newComment.EventId,
+		UserId:    userId,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := db.DB.Create(&comment).Error; err != nil {
 		return nil, err
 	}
 
-	return comment, nil
+	return &comment, nil
 }
 
 func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.Comment, error) {
@@ -37,16 +48,40 @@ func UpdateCommentById(updateReq *models.UpdateComment, userId string) (*models.
 	return comment, nil
 }
 
-func GetComments(eventId string, comments []*models.Comment) ([]*models.Comment, error) {
+func GetCommentByEventIdAndCommentId(commentId string, eventId string) (*models.Comment, error) {
 
-	err := db.DB.Where("event_id = ?", eventId).Find(&comments).Error
+	var comment *models.Comment
+
+	err := db.DB.Where("id = ?", commentId).Where("event_id = ?", eventId).First(&comment).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return comments, nil
+			return comment, nil
 		}
-		return comments, err
+		return comment, err
 	}
 
-	return comments, nil
+	return comment, nil
+}
+
+func DeleteCommentById(commentId string, userId string) error {
+	var comment models.Comment
+	result := db.DB.Where("id = ?", commentId).First(&comment)
+	fmt.Println("HEYYY", commentId, result)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil // Return nil when the user is not found
+		}
+		return result.Error // Return the actual error for other errors
+	}
+
+	if comment.UserId != userId {
+		return errors.New("you are not authorized to delete this comment")
+	}
+
+	if err := db.DB.Delete(&comment).Error; err != nil {
+		return err
+	}
+	return nil
 }
