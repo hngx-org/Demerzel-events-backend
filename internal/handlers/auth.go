@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"demerzel-events/dependencies/firebase"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
@@ -23,7 +22,7 @@ func HandleAuth(c *gin.Context) {
 		return
 	}
 
-	claims, err := firebase.Inner.VerifyIDToken(requestBody.Token)
+	claims, err := jwt.DecodeToken(requestBody.Token)
 	if err != nil {
 		response.Error(c, http.StatusBadRequest, err.Error())
 		return
@@ -46,7 +45,8 @@ func HandleAuth(c *gin.Context) {
 		}
 	}
 
-	token, err := jwt.CreateToken(types.ResponseMap{"id": user.Id}, os.Getenv("JWT_SECRET"), 72)
+	data := types.ResponseMap{"id": user.Id, "name": user.Name, "email": user.Email, "avatar": user.Avatar}
+	token, err := jwt.CreateToken(data, os.Getenv("JWT_SECRET"), 72)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "An error occurred while generating authentication token")
 	}
