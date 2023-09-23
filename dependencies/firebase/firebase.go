@@ -3,8 +3,8 @@ package firebase
 import (
 	"context"
 	gFirebase "firebase.google.com/go/v4"
-	"fmt"
 	"google.golang.org/api/option"
+	"os"
 )
 
 type Firebase struct {
@@ -13,32 +13,31 @@ type Firebase struct {
 
 var Inner Firebase
 
-func Initialize() *Firebase {
-	opt := option.WithCredentialsFile("service-account.json")
+func Initialize() {
+	opt := option.WithCredentialsJSON([]byte(os.Getenv("FIREBASE_SERVICE_ACCOUNT")))
 	app, err := gFirebase.NewApp(context.Background(), nil, opt)
 
 	if err != nil {
 		panic(err)
 	}
 
-	return &Firebase{
+	Inner = Firebase{
 		app: app,
 	}
 }
 
-func (f *Firebase) VerifyIDToken(ctx context.Context, idToken string) (map[string]interface{}, error) {
+func (f *Firebase) VerifyIDToken(idToken string) (map[string]interface{}, error) {
+	ctx := context.Background()
 	auth, err := f.app.Auth(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	token, err := auth.VerifyIDToken(ctx, idToken)
+
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(token)
-	fmt.Println(token.Claims)
 
 	return token.Claims, nil
 }
