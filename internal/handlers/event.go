@@ -11,25 +11,22 @@ import (
 	"reflect"
 )
 
-func GroupEventById(c *gin.Context) {
-	
+func GetGroupEventsHandler(c *gin.Context) {
+
 	id := c.Param("id")
 
-    group := models.Group{
-        ID: id,	
+	group := models.Group{
+		ID: id,
 	}
 
-	result, err := group.GetGroupEvent(db.DB)
+	events, err := group.GetGroupEvents(db.DB)
 
 	if err != nil {
 		response.Error(c, 500, "Can't process your request")
 		return
 	}
 
-	res := make(map[string]interface{}) 
-	res["Result"] = result
-
-	response.Success(c,200, "List of events",res)
+	response.Success(c, 200, "List of events", events)
 }
 
 func CreateEventHandler(c *gin.Context) {
@@ -57,7 +54,7 @@ func CreateEventHandler(c *gin.Context) {
 
 	// Check if description field is empty or is a string
 	if input.Description == "" {
-		response.Error(c, http.StatusBadRequest, "Desciption field is empty")
+		response.Error(c, http.StatusBadRequest, "Description field is empty")
 		return
 	}
 
@@ -134,31 +131,67 @@ func CreateEventHandler(c *gin.Context) {
 	createdEvent, err := models.CreateEvent(db.DB, &input)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
+	response.Success(c, http.StatusCreated, "Event Created", createdEvent)
 
 }
 
 func GetEventHandler(c *gin.Context) {
 
-	eventID := c.Param("eventid")
+	eventID := c.Param("event_id")
 
 	if eventID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+		response.Error(c, http.StatusBadRequest, "Event ID is required")
 		return
 	}
 
 	event, err := models.GetEventByID(db.DB, eventID)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 
 	response.Success(c, http.StatusOK, "Event details fetched", map[string]*models.Event{"event": event})
+}
+
+func JoinEventHandler(c *gin.Context) {
+	eventID := c.Param("event_id")
+
+	if eventID == "" {
+		response.Error(c, http.StatusBadRequest, "Event ID is required")
+		return
+	}
+
+	_, err := models.GetEventByID(db.DB, eventID)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	event, err := models.AttachUserToEvent(db.DB, user.Id, eventID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to join event:"+err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Joined Event", event)
+
 }
 
 // ListEventsHandler lists all events
@@ -197,9 +230,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 
 	if len(userGroups) == 0 {
 		events := make([]models.Event, 0)
-		response.Success(c, http.StatusOK, "Friend Events", map[string]interface{}{
-			"events": events,
-		})
+		response.Success(c, http.StatusOK, "Friend Events", events)
 
 		return
 	}
@@ -216,9 +247,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events", map[string]interface{}{
-		"events": events,
-	})
+	response.Success(c, http.StatusOK, "Events", events)
 
 	return
 }

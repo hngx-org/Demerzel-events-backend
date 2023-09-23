@@ -20,8 +20,6 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
-	r.POST("/events", handlers.CreateEventHandler)
-	r.GET("/events", handlers.ListEventsHandler)
 
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
@@ -58,12 +56,12 @@ func BuildRoutesHandler() *gin.Engine {
 	eventRoutes := apiRoutes.Group("/events")
 	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.GET("/friends", handlers.ListFriendsEventsHandler)
-	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+	eventRoutes.GET("/:event_id", handlers.GetEventHandler)
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
-	eventRoutes.POST("/upload", handlers.UploadFileHandler)
+	eventRoutes.POST("join/:event_id", handlers.JoinEventHandler)
 	// Get events in group returns bad data.
-	eventRoutes.GET("/group/:id/", handlers.GroupEventById)
+	eventRoutes.GET("/group/:id/", handlers.GetGroupEventsHandler)
 
 	//comment routes
 	commentRoutes := apiRoutes.Group("/comments")

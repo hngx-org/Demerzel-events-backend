@@ -34,7 +34,7 @@ type Event struct {
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
-	Comments    []Comment `json:"comments"`
+	Attendees   []User    `json:"attendees" gorm:"many2many:interested_events"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -75,17 +75,6 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event, error) {
-	var events []Event
-
-	err := tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.group_id = ?", group.ID).Scan(&events).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &events, nil
-}
 func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 
 	request := Event{
@@ -110,11 +99,11 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 	return &request, nil
 }
 
-// retrieve an event using its ID
+// GetEventByID retrieve an event using its ID
 func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
-	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").First(&event).Error
+	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Attendees").First(&event).Error
 
 	if err != nil {
 		return nil, err
@@ -123,7 +112,14 @@ func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	return &event, nil
 }
 
-// ListAllEvents retrieves all events.
+func AttachUserToEvent(tx *gorm.DB, userID string, eventID string) (*Event, error) {
+	err := tx.Model(&InterestedEvent{}).FirstOrCreate(&InterestedEvent{UserId: userID, EventId: eventID}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return GetEventByID(tx, eventID)
+}
 
 // ListEvents retrieves all events.
 func ListEvents(tx *gorm.DB) ([]Event, error) {
