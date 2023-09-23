@@ -156,21 +156,32 @@ func CreateEventHandler(c *gin.Context) {
 
 func GetEventHandler(c *gin.Context) {
 
-	eventID := c.Param("eventid")
+	startDate := c.Request.URL.Query().Get("date")
 
-	if eventID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+	eventID := c.Request.URL.Query().Get("id")
+	fmt.Print(startDate)
+	fmt.Print(eventID)
+
+	// eventID := c.Param("eventid")
+
+	if eventID == "" && startDate == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID or Event Date is required"})
 		return
 	}
 
-	event, err := models.GetEventByID(db.DB, eventID)
+	event, g, err := models.GetEventByParameter(db.DB, eventID, startDate)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
+	if startDate != "" {
+
+		response.Success(c, http.StatusOK, "Event details fetched", map[string]interface{}{"event": g})
+	}
 	response.Success(c, http.StatusOK, "Event details fetched", map[string]*models.Event{"event": event})
+
 }
 
 // ListEventsHandler lists all events

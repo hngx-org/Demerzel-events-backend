@@ -152,7 +152,8 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 		}
 		fmt.Print(groups)
 
-		r, e := GetEventByID(tx, request.Id)
+		r, g, e := GetEventByParameter(tx, request.Id, "")
+		fmt.Print(g)
 		if e != nil {
 			fmt.Print(r)
 
@@ -183,16 +184,30 @@ func CreateGroupEvent(tx *gorm.DB, groupEvent *NewGroupEvent) (*GroupEvent, erro
 }
 
 // retrieve an event using its ID
-func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
+func GetEventByParameter(tx *gorm.DB, eventID string, date string) (*Event, []Event, error) {
 	var event Event
+	var events []Event
 
-	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").Preload("GroupEvents.Group").First(&event).Error
+	if eventID != "" {
 
-	if err != nil {
-		return nil, err
+		err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").Preload("GroupEvents.Group").First(&event).Error
+
+		if err != nil {
+			return &Event{}, nil, err
+		}
+
+	}
+	if date != "" {
+
+		err := tx.Where("start_date = ?", date).Order("start_date, start_time").Preload("Creator").Preload("Comments").Preload("GroupEvents.Group").First(&events).Error
+
+		if err != nil {
+			return nil, []Event{}, err
+		}
+
 	}
 
-	return &event, nil
+	return &event, events, nil
 }
 
 // ListAllEvents retrieves all events.
