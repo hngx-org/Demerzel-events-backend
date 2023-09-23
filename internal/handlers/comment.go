@@ -5,6 +5,7 @@ import (
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -93,7 +94,8 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	_, eventexist := models.GetEventByID(db.DB, eventId)
+	_, g, eventexist := models.GetEventByParameter(db.DB, eventId, "")
+	fmt.Print(g)
 	if eventexist != nil {
 		if eventexist.Error() == "record not found" {
 			response.Error(c, http.StatusNotFound, "Event doesn't exist")
