@@ -48,8 +48,8 @@ type InterestedEvent struct {
 	UserId  string `json:"user_id" gorm:"type:varchar(255)"`
 	EventId string `json:"event_id" gorm:"type:varchar(255)"`
 
-	User  User  `gorm:"foreignKey:UserId"`
-	Event Event `gorm:"foreignKey:EventId"`
+	User  *User  `gorm:"foreignKey:UserId"`
+	Event *Event `gorm:"foreignKey:EventId"`
 }
 
 func (iE *InterestedEvent) BeforeCreate(tx *gorm.DB) error {
@@ -64,8 +64,8 @@ type GroupEvent struct {
 	GroupId string `json:"group_id" gorm:"type:varchar(255)"`
 	EventId string `json:"event_id" gorm:"type:varchar(255)"`
 
-	Group Group `gorm:"foreignKey:GroupId"`
-	Event Event `gorm:"foreignKey:EventId"`
+	Group *Group `gorm:"foreignKey:GroupId"`
+	Event *Event `gorm:"foreignKey:EventId"`
 }
 
 func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
@@ -122,6 +122,15 @@ func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	return &event, nil
 }
 
+func GetEventByIDWithGroups(db *gorm.DB, eventID string) (*Event, error) {
+    var event Event
+
+    if err := db.Where("id = ?", eventID).Preload("Groups").First(&event).Error; err != nil {
+        return nil, err
+    }
+
+    return &event, nil
+}
 // ListAllEvents retrieves all events.
 
 // ListEvents retrieves all events.

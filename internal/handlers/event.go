@@ -142,24 +142,36 @@ func CreateEventHandler(c *gin.Context) {
 
 }
 
+// retrieve an event using its ID
 func GetEventHandler(c *gin.Context) {
+    eventID := c.Param("eventid")
 
-	eventID := c.Param("eventid")
+    if eventID == "" {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
+        return
+    }
 
-	if eventID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Event ID is required"})
-		return
-	}
+    preloadGroups := c.DefaultQuery("preload_groups", "false")
 
-	event, err := models.GetEventByID(db.DB, eventID)
+    var event *models.Event
+    var err error
 
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		return
-	}
+    if preloadGroups == "true" {
+        // preloads group information
+        event, err = models.GetEventByIDWithGroups(db.DB, eventID)
+    } else {
+        // does not preload group information
+        event, err = models.GetEventByID(db.DB, eventID)
+    }
 
-	response.Success(c, http.StatusOK, "Event details fetched", map[string]*models.Event{"event": event})
+    if err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+        return
+    }
+
+    response.Success(c, http.StatusOK, "Event details fetched", map[string]*models.Event{"event": event})
 }
+
 
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
