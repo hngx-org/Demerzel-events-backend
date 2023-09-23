@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"demerzel-events/dependencies/firebase"
 	"demerzel-events/internal/db"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -15,4 +16,7 @@ func Load() {
 
 	// Setup database connection
 	db.SetupDB()
+
+	// Initialize firebase
+	firebase.Initialize()
 }

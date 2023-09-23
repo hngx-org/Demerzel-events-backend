@@ -38,3 +38,18 @@ func VerifyToken(signedToken string, secret string) (jwt.MapClaims, error) {
 
 	return nil, fmt.Errorf("error: invalid jwt token")
 }
+
+func DecodeToken(signedToken string) (jwt.MapClaims, error) {
+	parser := jwt.Parser{}
+	token, _, err := parser.ParseUnverified(signedToken, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok {
+		return claims, nil
+	}
+
+	return nil, fmt.Errorf("error: invalid jwt token")
+}
