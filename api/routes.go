@@ -56,11 +56,11 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// Event Routes
 	eventRoutes := apiRoutes.Group("/events")
-	eventRoutes.GET("/", handlers.ListEventsHandler)
+	eventRoutes.GET("", handlers.ListEventsHandler)
 	eventRoutes.GET("/friends", handlers.ListFriendsEventsHandler)
-	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+  eventRoutes.GET("/:eventid", handlers.GetEventHandler)
+	eventRoutes.POST("", handlers.CreateEventHandler)
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
-	eventRoutes.POST("/", handlers.CreateEventHandler)
 	eventRoutes.POST("/upload", handlers.UploadFileHandler)
 	// Get events in group returns bad data.
 	eventRoutes.GET("/group/:id/", handlers.GroupEventById)
