@@ -23,6 +23,8 @@ func BuildRoutesHandler() *gin.Engine {
 	r.POST("/events", handlers.CreateEventHandler)
 	r.GET("/events", handlers.ListEventsHandler)
 
+	r.POST("/api/auth/verify", handlers.HandleAuth)
+
 	// OAuth routes
 	oauthRoutes := r.Group("/oauth")
 

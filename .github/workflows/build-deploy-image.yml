@@ -27,7 +27,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker login ${{ secrets.REGISTRY_NAME }}.azurecr.io -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }}
-          docker build -t ${{ secrets.IMAGE_NAME }} --build-arg="ACCESS_KEY=${{secrets.ACCESS_KEY}}" .
+          docker build -t ${{ secrets.IMAGE_NAME }} --no-cache --build-arg="ACCESS_KEY=${{secrets.ACCESS_KEY}}" .
           docker tag ${{ secrets.IMAGE_NAME }} ${{ secrets.REGISTRY_NAME }}.azurecr.io/${{ secrets.IMAGE_NAME }}:latest
           docker push ${{ secrets.REGISTRY_NAME }}.azurecr.io/${{ secrets.IMAGE_NAME }}:latest
         env:
