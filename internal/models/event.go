@@ -34,7 +34,6 @@ type Event struct {
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
-	Comments    []Comment `json:"comments"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -114,7 +113,7 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
-	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").First(&event).Error
+	err := tx.Where("id = ?", eventID).Preload("Creator").First(&event).Error
 
 	if err != nil {
 		return nil, err
