@@ -63,6 +63,17 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
+	// Check if thumbnail field is empty or is a string
+	if input.Thumbnail == "" {
+		response.Error(c, http.StatusBadRequest, "Thumbnail field is empty")
+		return
+	}
+
+	if reflect.ValueOf(input.Thumbnail).Kind() != reflect.String {
+		response.Error(c, http.StatusBadRequest, "Thumbnail is not a string")
+		return
+	}
+
 	// Check if location field is empty or is a string
 	if input.Location == "" {
 		response.Error(c, http.StatusBadRequest, "Location field is empty")

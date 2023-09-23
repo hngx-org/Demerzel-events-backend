@@ -9,15 +9,38 @@ import (
 )
 
 type NewEvent struct {
-	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
-	Thumbnail   string `json:"thumbnail"`
-	Location    string `json:"location"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	StartDate   string `json:"start_date"`
-	EndDate     string `json:"end_date"`
-	StartTime   string `json:"start_time"`
-	EndTime     string `json:"end_time"`
+	CreatorId   string   `json:"creator" gorm:"type:varchar(255)"`
+	Thumbnail   string   `json:"thumbnail"`
+	GroupId     []string `json:"group_id"`
+	Location    string   `json:"location"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	StartDate   string   `json:"start_date"`
+	EndDate     string   `json:"end_date"`
+	StartTime   string   `json:"start_time"`
+	EndTime     string   `json:"end_time"`
+}
+
+type NewGroupEvent struct {
+	EventId string `json:"event_id"`
+	GroupId string `json:"group_id"`
+}
+
+type EventGroupReponse struct {
+	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
+	Thumbnail   string    `json:"thumbnail"`
+	Location    string    `json:"location"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	StartDate   string    `json:"start_date"`
+	EndDate     string    `json:"end_date"`
+	StartTime   string    `json:"start_time"`
+	EndTime     string    `json:"end_time"`
+	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
+	GroupId     []string  `json:"group_id"`
 }
 
 type Event struct {
@@ -79,6 +102,7 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 
 	request := Event{
 		CreatorId:   event.CreatorId,
+		Thumbnail:   event.Thumbnail,
 		Title:       event.Title,
 		Description: event.Description,
 		Location:    event.Location,
@@ -94,6 +118,53 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 		fmt.Print(result)
 
 		return &Event{}, result.Error
+	}
+	fmt.Print(event)
+	fmt.Print(event.GroupId)
+	if len(event.GroupId) >= 1 {
+		var groups []string
+		for i := 0; i < len(event.GroupId); i++ {
+
+			newGroupEvent := NewGroupEvent{
+				EventId: request.Id,
+				GroupId: event.GroupId[i],
+			}
+			res, err := CreateGroupEvent(tx, &newGroupEvent)
+
+			if err != nil {
+				fmt.Print(res)
+
+				return nil, err
+			}
+			groups = append(groups, res.Id)
+		}
+		fmt.Print(groups)
+
+		r, e := GetEventByID(tx, request.Id)
+		if e != nil {
+			fmt.Print(r)
+
+			return nil, e
+		}
+
+		return r, nil
+	}
+
+	return &request, nil
+}
+
+func CreateGroupEvent(tx *gorm.DB, groupEvent *NewGroupEvent) (*GroupEvent, error) {
+	request := GroupEvent{
+		EventId: groupEvent.EventId,
+		GroupId: groupEvent.GroupId,
+	}
+
+	result := tx.Model(GroupEvent{}).Create(&request)
+
+	if result.Error != nil {
+		fmt.Print(result)
+
+		return &GroupEvent{}, result.Error
 	}
 
 	return &request, nil
