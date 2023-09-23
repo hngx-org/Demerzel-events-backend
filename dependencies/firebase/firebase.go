@@ -34,7 +34,6 @@ func (f *Firebase) VerifyIDToken(idToken string) (map[string]interface{}, error)
 	}
 
 	token, err := auth.VerifyIDToken(ctx, idToken)
-
 	if err != nil {
 		return nil, err
 	}
