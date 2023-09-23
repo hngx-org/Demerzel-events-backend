@@ -10,6 +10,8 @@ func Migrate() error {
 		&models.Event{},
 		&models.GroupEvent{},
 		&models.InterestedEvent{},
+		&models.Comment{},
+		// &models.Image{},
 	)
 	return err
 }
