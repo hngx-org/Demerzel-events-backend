@@ -143,16 +143,11 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	createdGroupEvent, createdEvent, err := models.CreateEvent(db.DB, &input)
+	createdEvent, err := models.CreateEvent(db.DB, &input)
 
-	fmt.Print(createdGroupEvent)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
-	}
-
-	if createdEvent == nil {
-		response.Success(c, http.StatusCreated, "Event and Group Created", map[string]interface{}{"event": createdGroupEvent})
 	}
 
 	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})

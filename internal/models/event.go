@@ -43,20 +43,21 @@ type EventGroupReponse struct {
 	GroupId     []string  `json:"group_id"`
 }
 type Event struct {
-	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
-	Thumbnail   string    `json:"thumbnail"`
-	Location    string    `json:"location"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	StartDate   string    `json:"start_date"`
-	EndDate     string    `json:"end_date"`
-	StartTime   string    `json:"start_time"`
-	EndTime     string    `json:"end_time"`
-	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
-	Comments    []Comment `json:"comments"`
+	Id          string       `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	CreatorId   string       `json:"creator_id" gorm:"type:varchar(255)"`
+	Thumbnail   string       `json:"thumbnail"`
+	Location    string       `json:"location"`
+	Title       string       `json:"title"`
+	Description string       `json:"description"`
+	StartDate   string       `json:"start_date"`
+	EndDate     string       `json:"end_date"`
+	StartTime   string       `json:"start_time"`
+	EndTime     string       `json:"end_time"`
+	CreatedAt   time.Time    `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt   time.Time    `json:"updated_at" gorm:"autoUpdateTime"`
+	Creator     *User        `json:"creator" gorm:"foreignKey:CreatorId"`
+	Comments    []Comment    `json:"comments"`
+	GroupEvents []GroupEvent `json:"group_events"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -109,7 +110,7 @@ func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event, error) {
 	return &events, nil
 }
 
-func CreateEvent(tx *gorm.DB, event *NewEvent) (*EventGroupReponse, *Event, error) {
+func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 
 	request := Event{
 		CreatorId:   event.CreatorId,
@@ -128,7 +129,7 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*EventGroupReponse, *Event, erro
 	if result.Error != nil {
 		fmt.Print(result)
 
-		return nil, &Event{}, result.Error
+		return &Event{}, result.Error
 	}
 	fmt.Print(event)
 	fmt.Print(event.GroupId)
@@ -145,31 +146,23 @@ func CreateEvent(tx *gorm.DB, event *NewEvent) (*EventGroupReponse, *Event, erro
 			if err != nil {
 				fmt.Print(res)
 
-				return &EventGroupReponse{}, nil, err
+				return nil, err
 			}
 			groups = append(groups, res.Id)
 		}
+		fmt.Print(groups)
 
-		response := EventGroupReponse{
-			Id:          request.Id,
-			CreatorId:   request.CreatorId,
-			Thumbnail:   request.Thumbnail,
-			Location:    request.Location,
-			Title:       request.Title,
-			Description: request.Description,
-			StartDate:   request.StartDate,
-			EndDate:     request.EndDate,
-			StartTime:   request.StartTime,
-			EndTime:     request.EndTime,
-			CreatedAt:   request.CreatedAt,
-			UpdatedAt:   request.UpdatedAt,
-			Creator:     request.Creator,
-			GroupId:     groups,
+		r, e := GetEventByID(tx, request.Id)
+		if e != nil {
+			fmt.Print(r)
+
+			return nil, e
 		}
-		return &response, nil, nil
+
+		return r, nil
 	}
 
-	return nil, &request, nil
+	return &request, nil
 }
 
 func CreateGroupEvent(tx *gorm.DB, groupEvent *NewGroupEvent) (*GroupEvent, error) {
@@ -189,23 +182,11 @@ func CreateGroupEvent(tx *gorm.DB, groupEvent *NewGroupEvent) (*GroupEvent, erro
 	return &request, nil
 }
 
-func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event, error) {
-	var events []Event
-
-	err := tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.group_id = ?", group.ID).Scan(&events).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &events, nil
-}
-
 // retrieve an event using its ID
 func GetEventByID(tx *gorm.DB, eventID string) (*Event, error) {
 	var event Event
 
-	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").First(&event).Error
+	err := tx.Where("id = ?", eventID).Preload("Creator").Preload("Comments").Preload("GroupEvents.Group").First(&event).Error
 
 	if err != nil {
 		return nil, err
