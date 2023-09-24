@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,7 +10,8 @@ import (
 )
 
 type NewEvent struct {
-	CreatorId   string `json:"creator" gorm:"type:varchar(255)"`
+	CreatorId   string `json:"creator_id"`
+	GroupId     string `json:"group_id"`
 	Thumbnail   string `json:"thumbnail"`
 	Location    string `json:"location"`
 	Title       string `json:"title"`
@@ -23,6 +25,7 @@ type NewEvent struct {
 type Event struct {
 	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
+	GroupId     string    `json:"group_id" gorm:"type:varchar(255)"`
 	Thumbnail   string    `json:"thumbnail"`
 	Location    string    `json:"location"`
 	Title       string    `json:"title"`
@@ -33,7 +36,9 @@ type Event struct {
 	EndTime     string    `json:"end_time"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
+	Creator     *User     `json:"creator,omitempty" gorm:"foreignKey:CreatorId"`
+	Group       *Group    `json:"group,omitempty" gorm:"foreignKey:GroupId"`
+	Comments    []Comment `json:"comments,omitempty"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
@@ -43,13 +48,12 @@ func (e *Event) BeforeCreate(tx *gorm.DB) error {
 }
 
 type InterestedEvent struct {
-	gorm.Model
 	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	UserId  string `json:"user_id" gorm:"type:varchar(255)"`
 	EventId string `json:"event_id" gorm:"type:varchar(255)"`
 
-	User  User  `gorm:"foreignKey:UserId"`
-	Event Event `gorm:"foreignKey:EventId"`
+	User  User  `json:"user" gorm:"foreignKey:UserId"`
+	Event Event `json:"event" gorm:"foreignKey:EventId"`
 }
 
 func (iE *InterestedEvent) BeforeCreate(tx *gorm.DB) error {
@@ -74,21 +78,20 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-func (group *Group) GetGroupEvent(tx *gorm.DB) (*[]Event, error) {
-	var events []Event
-
-	err := tx.Table("group_events").Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").Joins("JOIN events on events.id = group_events.event_id").Where("group_events.group_id = ?", group.ID).Scan(&events).Error
-
-	if err != nil {
-		return nil, err
+func (g *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
+	result := tx.Preload("Events").Where("id = ?", g.ID).First(g)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	return &events, nil
+	return &g.Events, nil
 }
-func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 
+func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
 	request := Event{
 		CreatorId:   event.CreatorId,
+		GroupId:     event.GroupId,
+		Thumbnail:   event.Thumbnail,
 		Title:       event.Title,
 		Description: event.Description,
 		Location:    event.Location,
@@ -155,4 +158,54 @@ func ListEventsInGroups(tx *gorm.DB, groupIDs []string) ([]Event, error) {
 	}
 
 	return events, nil
+}
+
+func SubscribeUserToEvent(tx *gorm.DB, userID, eventID string) (*InterestedEvent, error) {
+	var interestedEvent InterestedEvent
+	result := tx.Where("event_id = ?", eventID).Where("user_id = ?", userID).First(&interestedEvent)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		interestedEvent = InterestedEvent{
+			UserId:  userID,
+			EventId: eventID,
+		}
+
+		result = tx.Create(&interestedEvent)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+
+		return &interestedEvent, nil
+	}
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return nil, fmt.Errorf("user already subscribed to event")
+}
+
+func UnsubscribeUserFromEvent(tx *gorm.DB, userID, eventID string) error {
+	var interestedEvent InterestedEvent
+	result := tx.Where("event_id = ?", eventID).Where("user_id = ?", userID).First(&interestedEvent)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("user not subscribed to event")
+		}
+		return result.Error
+	}
+
+	// Delete the UserGroup
+	result = tx.Delete(&interestedEvent)
+	return result.Error
+}
+
+func GetUserEventSubscriptions(tx *gorm.DB, userID string) (*[]Event, error) {
+	var user User
+	result := tx.Where("id = ?", userID).Preload("InterestedEvents").First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &user.InterestedEvents, nil
 }

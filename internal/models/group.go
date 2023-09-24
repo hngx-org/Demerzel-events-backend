@@ -13,8 +13,8 @@ type Group struct {
 	Image     string      `json:"image"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
-	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
-	Events    []Event     `json:"events" gorm:"many2many:group_events"`
+	Members   []UserGroup `json:"members,omitempty" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
+	Events    []Event     `json:"events,omitempty"`
 }
 
 type UserGroup struct {
@@ -45,7 +45,7 @@ func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 
 // checks if group with the id exists
 func (g *Group) GetGroupByID(tx *gorm.DB) error {
-	result := tx.First(&g, "id=?", g.ID)
+	result := tx.Preload("Events").First(&g, "id=?", g.ID)
 	if result.Error != nil {
 		return result.Error
 	}
