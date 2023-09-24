@@ -26,7 +26,7 @@ func GetGroupEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, 200, "List of events", events)
+	response.Success(c, 200, "List of events", map[string]interface{}{"events": events})
 }
 
 func CreateEventHandler(c *gin.Context) {
@@ -146,7 +146,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusCreated, "Event Created", createdEvent)
+	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
 
 }
 
@@ -165,7 +165,7 @@ func GetEventHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Event details fetched", event)
+	response.Success(c, http.StatusOK, "Event details fetched", map[string]interface{}{"event": event})
 }
 
 func JoinEventHandler(c *gin.Context) {
@@ -247,7 +247,7 @@ func ListEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events retrieved successfully", events)
+	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{"events": events})
 }
 
 func ListFriendsEventsHandler(c *gin.Context) {
@@ -272,7 +272,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 
 	if len(userGroups) == 0 {
 		events := make([]models.Event, 0)
-		response.Success(c, http.StatusOK, "Friend Events", events)
+		response.Success(c, http.StatusOK, "Friend Events", map[string]interface{}{"events": events})
 
 		return
 	}
@@ -289,7 +289,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events", events)
+	response.Success(c, http.StatusOK, "Events", map[string]interface{}{"events": events})
 
 	return
 }
@@ -382,5 +382,5 @@ func GetUserEventSubscriptions(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "User event subscriptions retrieved", events)
+	response.Success(c, http.StatusOK, "User event subscriptions retrieved", map[string]interface{}{"events": events})
 }
