@@ -151,7 +151,6 @@ func CreateEventHandler(c *gin.Context) {
 }
 
 func GetEventHandler(c *gin.Context) {
-
 	eventID := c.Param("event_id")
 
 	if eventID == "" {
@@ -202,7 +201,6 @@ func JoinEventHandler(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "Joined Event", map[string]*models.Event{"event": event})
-
 }
 
 func LeaveEventHandler(c *gin.Context) {

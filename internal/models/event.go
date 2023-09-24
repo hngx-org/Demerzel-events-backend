@@ -93,7 +93,6 @@ func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {
 //}
 
 func CreateEvent(tx *gorm.DB, event *NewEvent) (*Event, error) {
-
 	createdEvent := Event{
 		CreatorId:   event.CreatorId,
 		Thumbnail:   event.Thumbnail,

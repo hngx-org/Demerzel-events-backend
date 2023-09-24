@@ -44,7 +44,6 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
 	apiRoutes.GET("/groups/:id", handlers.GetGroupById)
 	apiRoutes.DELETE("/groups/:id", handlers.DeleteGroup)
-	apiRoutes.GET("groups/:id/events", handlers.GroupEventsById)
 
 	// User routes
 	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
@@ -71,7 +70,6 @@ func BuildRoutesHandler() *gin.Engine {
 	//comment routes
 	commentRoutes := apiRoutes.Group("/comments")
 	commentRoutes.POST("/", handlers.CreateComment)
-	commentRoutes.GET("/:comment_id", handlers.GetComment)
 	commentRoutes.PUT("/:comment_id", handlers.UpdateComments)
 	commentRoutes.DELETE("/:comment_id", handlers.DeleteComment)
 
