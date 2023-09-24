@@ -3,7 +3,8 @@
 ## 1. About Project
 Team Demerzel is a HNG X Backend team of Go Developers.
 This project is an API for an 'Events' Mobile Application built by Team Demerzel - Mobile.
-
+The figma design for the mobile app can be found [HERE](https://www.figma.com/file/CMNbYk2RJWDDAbwxwJ5nUe/HNG-Stage-3-(POPOOLA-ABDUSSALAM)?type=design&node-id=1-2&mode=design&t=BGLlcIsetv3S3MzU-0)
+The DB schema diagram for the app can be found [HERE](https://dbdiagram.io/d/Event-App-Database-Schema-65085bf702bd1c4a5ec9bc1c)
 ## 2. Documentation
 >The API from this project is fully Documented [HERE](./DOCUMENTATION.md)
 
