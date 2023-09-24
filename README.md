@@ -5,7 +5,7 @@ Team Demerzel is a HNG X Backend team of Go Developers.
 This project is an API for an 'Events' Mobile Application built by Team Demerzel - Mobile.
 
 ## 2. Documentation
->The API from this project is fully Documented [HERE](./DOCUMENTATION.md)
+>The API from this project is fully Documented [HERE](./DOCUMENTATION.md) and [HERE(POSTMAN)](https://documenter.getpostman.com/view/4194134/2s9YC31ZgX)
 
 ## 3. Stacks and Technologies used
 - [Golang](https://go.dev/)
