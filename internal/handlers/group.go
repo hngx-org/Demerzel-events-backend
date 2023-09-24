@@ -84,76 +84,6 @@ func CreateGroup(ctx *gin.Context) {
 	)
 }
 
-func SubscribeUserToGroup(c *gin.Context) {
-	groupID := c.Param("id")
-	rawUser, exists := c.Get("user")
-
-	if !exists {
-		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
-		return
-	}
-
-	user, ok := rawUser.(*models.User)
-
-	if !ok {
-		response.Error(c, http.StatusConflict, "error: invalid user type in context")
-		return
-	}
-
-	group, err := services.GetGroupById(groupID)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	data, err := services.SubscribeUserToGroup(user.Id, groupID)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "User successfully subscribed to group", data)
-}
-
-func UnsubscribeFromGroup(c *gin.Context) {
-	groupID := c.Param("id")
-	rawUser, exists := c.Get("user")
-
-	if !exists {
-		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
-		return
-	}
-	user, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusConflict, "error: invalid user type in context")
-		return
-	}
-
-	group, err := services.GetGroupById(groupID)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	err = services.DeleteUserGroup(user.Id, groupID)
-	if err != nil {
-		response.Error(c, http.StatusConflict, err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", nil)
-}
-
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
 	id := c.Params.ByName("id")
@@ -258,4 +188,18 @@ func DeleteGroup(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s deleted successfully", id), nil)
 
+}
+
+func GroupEventsById(c *gin.Context) {
+	id := c.Param("id")
+
+	group := models.Group{ID: id}
+	result, err := group.GetGroupEvents(db.DB)
+
+	if err != nil {
+		response.Error(c, 500, "Can't process your request")
+		return
+	}
+
+	response.Success(c, 200, "Group events retrieved", result)
 }

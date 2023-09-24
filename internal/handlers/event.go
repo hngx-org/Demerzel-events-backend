@@ -11,27 +11,6 @@ import (
 	"reflect"
 )
 
-func GroupEventById(c *gin.Context) {
-	
-	id := c.Param("id")
-
-    group := models.Group{
-        ID: id,	
-	}
-
-	result, err := group.GetGroupEvent(db.DB)
-
-	if err != nil {
-		response.Error(c, 500, "Can't process your request")
-		return
-	}
-
-	res := make(map[string]interface{}) 
-	res["Result"] = result
-
-	response.Success(c,200, "List of events",res)
-}
-
 func CreateEventHandler(c *gin.Context) {
 	var input models.NewEvent
 
@@ -138,7 +117,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
+	response.Success(c, http.StatusCreated, "Event Created", createdEvent)
 
 }
 
@@ -158,21 +137,18 @@ func GetEventHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Event details fetched", map[string]*models.Event{"event": event})
+	response.Success(c, http.StatusOK, "Event details fetched", event)
 }
 
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
-
 	events, err := models.ListEvents(db.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	response.Success(c, http.StatusOK, "All Events", map[string]interface{}{
-		"events": events,
-	})
+	response.Success(c, http.StatusOK, "Events retrieved successfully", events)
 }
 
 func ListFriendsEventsHandler(c *gin.Context) {
@@ -197,9 +173,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 
 	if len(userGroups) == 0 {
 		events := make([]models.Event, 0)
-		response.Success(c, http.StatusOK, "Friend Events", map[string]interface{}{
-			"events": events,
-		})
+		response.Success(c, http.StatusOK, "Friend Events", events)
 
 		return
 	}
@@ -216,9 +190,98 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events", map[string]interface{}{
-		"events": events,
-	})
+	response.Success(c, http.StatusOK, "Events", events)
 
 	return
+}
+
+func SubscribeUserToEvent(c *gin.Context) {
+	eventID := c.Param("id")
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	event, err := models.GetEventByID(db.DB, eventID)
+	if event == nil {
+		response.Error(c, http.StatusNotFound, "Event does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	_, err = models.SubscribeUserToEvent(db.DB, user.Id, eventID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User successfully subscribed to event", nil)
+}
+
+func UnsubscribeFromEvent(c *gin.Context) {
+	eventID := c.Param("id")
+	rawUser, exists := c.Get("user")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	event, err := models.GetEventByID(db.DB, eventID)
+	if event == nil {
+		response.Error(c, http.StatusNotFound, "Event does not exist")
+		return
+	}
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = models.UnsubscribeUserFromEvent(db.DB, user.Id, eventID)
+	if err != nil {
+		response.Error(c, http.StatusConflict, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User successfully unsubscribed to event", nil)
+}
+
+func GetUserEventSubscriptions(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	events, err := models.GetUserEventSubscriptions(db.DB, user.Id)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User event subscriptions retrieved", events)
 }
