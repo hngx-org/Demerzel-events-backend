@@ -40,9 +40,9 @@ type Event struct {
 	EndTime     string    `json:"end_time"`
 	CreatedAt   time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt   time.Time `json:"updated_at" gorm:"autoUpdateTime"`
-	Creator     *User     `json:"creator" gorm:"foreignKey:CreatorId"`
-	Attendees   []User    `json:"attendees" gorm:"many2many:interested_events"`
-	Groups      []Group   `json:"groups" gorm:"many2many:group_events"`
+	Creator     *User     `json:"creator,omitempty" gorm:"foreignKey:CreatorId"`
+	Attendees   []User    `json:"attendees,omitempty" gorm:"many2many:interested_events"`
+	Groups      []Group   `json:"groups,omitempty" gorm:"many2many:group_events"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {
