@@ -124,6 +124,11 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
+	if !models.IsValidDate(input.StartDate) {
+		response.Error(c, http.StatusBadRequest, "Invalid StartDate. Should follow format 2023-09-21")
+		return
+	}
+
 	if reflect.ValueOf(input.StartDate).Kind() != reflect.String {
 		response.Error(c, http.StatusBadRequest, "StartDate is not a string")
 		return
@@ -131,6 +136,11 @@ func CreateEventHandler(c *gin.Context) {
 	// Check if end_date field is empty or is a string
 	if input.EndDate == "" {
 		response.Error(c, http.StatusBadRequest, "EndDate field is empty")
+		return
+	}
+
+	if !models.IsValidDate(input.EndDate) {
+		response.Error(c, http.StatusBadRequest, "Invalid EndDate. Should follow format 2023-09-21")
 		return
 	}
 
@@ -241,7 +251,8 @@ func LeaveEventHandler(c *gin.Context) {
 
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
-	events, err := models.ListEvents(db.DB)
+	startDate := c.Query("start_date")
+	events, err := models.ListEvents(db.DB, startDate)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
