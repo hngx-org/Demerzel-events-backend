@@ -57,15 +57,15 @@ func BuildRoutesHandler() *gin.Engine {
 	eventRoutes.POST("/", handlers.CreateEventHandler)
 	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.GET("/friends", handlers.ListFriendsEventsHandler)
-	eventRoutes.GET("/:event_id", handlers.GetEventHandler)
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
-	eventRoutes.POST("/:id/subscribe", handlers.SubscribeUserToEvent)
-	eventRoutes.POST("/:id/unsubscribe", handlers.UnsubscribeFromEvent)
 	eventRoutes.POST("join/:event_id", handlers.JoinEventHandler)
 	eventRoutes.POST("leave/:event_id", handlers.LeaveEventHandler)
-	eventRoutes.POST("/subscriptions", handlers.GetUserEventSubscriptions)
-	// Get events in group returns bad data.
 	eventRoutes.GET("/group/:id/", handlers.GetGroupEventsHandler)
+	eventRoutes.GET("/subscriptions", handlers.GetUserEventSubscriptions)
+	eventRoutes.POST("/:id/subscribe", handlers.SubscribeUserToEvent)
+	eventRoutes.POST("/:id/unsubscribe", handlers.UnsubscribeFromEvent)
+	eventRoutes.GET("/:event_id", handlers.GetEventHandler)
+	// Get events in group returns bad data.
 
 	//comment routes
 	commentRoutes := apiRoutes.Group("/comments")
