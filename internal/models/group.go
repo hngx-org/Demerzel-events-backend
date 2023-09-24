@@ -13,8 +13,8 @@ type Group struct {
 	Image     string      `json:"image"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
-	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
-	Events    []Event     `json:"events" gorm:"many2many:group_events"`
+	Members   []UserGroup `json:"members,omitempty" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
+	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
 }
 
 type UserGroup struct {
@@ -45,7 +45,7 @@ func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 
 // checks if group with the id exists
 func (g *Group) GetGroupByID(tx *gorm.DB) error {
-	result := tx.First(&g, "id=?", g.ID)
+	result := tx.Preload("Events").First(&g, "id=?", g.ID)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -60,13 +60,13 @@ func (g *Group) UpdateGroupByID(tx *gorm.DB) error {
 	return nil
 }
 
-func (group *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
+func (g *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
 	var events []Event
 
 	err := tx.Table("group_events").
 		Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").
 		Joins("JOIN events on events.id = group_events.event_id").
-		Where("group_events.group_id = ?", group.ID).
+		Where("group_events.group_id = ?", g.ID).
 		Scan(&events).Error
 
 	if err != nil {

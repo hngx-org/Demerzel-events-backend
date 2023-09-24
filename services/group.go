@@ -159,7 +159,7 @@ func GetGroupById(id string) (*models.Group, error) {
 	result := db.DB.Where("id = ?", id).Preload("Members.User").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil // Return nil when the group is not found
+			return nil, fmt.Errorf("Group doesn't exist")
 		}
 		return nil, result.Error // Return the actual error for other errors
 	}

@@ -20,14 +20,12 @@ func CreateGroup(ctx *gin.Context) {
 	type jsonData struct {
 		Name string `json:"name" binding:"required"`
 	}
-	
+
 	var requestBody struct {
-		File        *multipart.FileHeader `form:"file"`
-		GroupData 	jsonData `form:"jsonData"`
+		File      *multipart.FileHeader `form:"file"`
+		GroupData jsonData              `form:"jsonData"`
 	}
 
-	
-	
 	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
 			ctx,
@@ -42,12 +40,12 @@ func CreateGroup(ctx *gin.Context) {
 
 	if fileToUpload != nil {
 
-		image, err:= fileToUpload.Open()
+		image, err := fileToUpload.Open()
 		if err != nil {
 			response.Error(ctx, http.StatusBadRequest, err.Error())
 		}
 
-		buffer:= new(bytes.Buffer)
+		buffer := new(bytes.Buffer)
 		_, err = buffer.ReadFrom(image)
 
 		if err != nil {
@@ -62,7 +60,7 @@ func CreateGroup(ctx *gin.Context) {
 			BaseUrl:   os.Getenv("CLOUDINARY_BASE_URL"),
 		}
 
-		imageUrl, err:= transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
+		imageUrl, err := transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
 
 		if err != nil {
 			response.Error(ctx, http.StatusBadRequest, "Could not upload to file to bucket:"+err.Error())
@@ -84,76 +82,6 @@ func CreateGroup(ctx *gin.Context) {
 		"Group created successfully",
 		newGroup,
 	)
-}
-
-func SubscribeUserToGroup(c *gin.Context) {
-	groupID := c.Param("id")
-	rawUser, exists := c.Get("user")
-
-	if !exists {
-		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
-		return
-	}
-
-	user, ok := rawUser.(*models.User)
-
-	if !ok {
-		response.Error(c, http.StatusConflict, "error: invalid user type in context")
-		return
-	}
-
-	group, err := services.GetGroupById(groupID)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	data, err := services.SubscribeUserToGroup(user.Id, groupID)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "User successfully subscribed to group", data)
-}
-
-func UnsubscribeFromGroup(c *gin.Context) {
-	groupID := c.Param("id")
-	rawUser, exists := c.Get("user")
-
-	if !exists {
-		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
-		return
-	}
-	user, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusConflict, "error: invalid user type in context")
-		return
-	}
-
-	group, err := services.GetGroupById(groupID)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	err = services.DeleteUserGroup(user.Id, groupID)
-	if err != nil {
-		response.Error(c, http.StatusConflict, err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "User successfully unsubscribed to group", nil)
 }
 
 func UpdateGroup(c *gin.Context) {
@@ -238,13 +166,8 @@ func GetGroupById(c *gin.Context) {
 	}
 
 	group, err := services.GetGroupById(id)
-	if group == nil {
-		response.Error(c, http.StatusNotFound, "Group does not exist")
-		return
-	}
-
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -265,4 +188,18 @@ func DeleteGroup(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, fmt.Sprintf("group with id=%s deleted successfully", id), nil)
 
+}
+
+func GroupEventsById(c *gin.Context) {
+	id := c.Param("id")
+
+	group := models.Group{ID: id}
+	result, err := group.GetGroupEvents(db.DB)
+
+	if err != nil {
+		response.Error(c, 500, "Can't process your request")
+		return
+	}
+
+	response.Success(c, 200, "Group events retrieved", result)
 }
