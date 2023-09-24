@@ -60,6 +60,7 @@ func BuildRoutesHandler() *gin.Engine {
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
 	eventRoutes.POST("join/:event_id", handlers.JoinEventHandler)
+	eventRoutes.POST("leave/:event_id", handlers.LeaveEventHandler)
 	// Get events in group returns bad data.
 	eventRoutes.GET("/group/:id/", handlers.GetGroupEventsHandler)
 

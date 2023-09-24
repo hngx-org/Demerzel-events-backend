@@ -201,7 +201,43 @@ func JoinEventHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Joined Event", event)
+	response.Success(c, http.StatusOK, "Joined Event", map[string]*models.Event{"event": event})
+
+}
+
+func LeaveEventHandler(c *gin.Context) {
+	eventID := c.Param("event_id")
+
+	if eventID == "" {
+		response.Error(c, http.StatusBadRequest, "Event ID is required")
+		return
+	}
+
+	_, err := models.GetEventByID(db.DB, eventID)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	event, err := models.DetachUserFromEvent(db.DB, user.Id, eventID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to leave event:"+err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Removed from Event", map[string]*models.Event{"event": event})
 
 }
 
@@ -258,7 +294,9 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events", events)
+	response.Success(c, http.StatusOK, "Events", map[string]interface{}{
+		"events": events,
+	})
 
 	return
 }
