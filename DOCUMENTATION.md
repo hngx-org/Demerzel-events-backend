@@ -107,6 +107,10 @@ header should be gotten from the response body.
    * **Despcription**: Authenticate a user using Google's Oauth and get a JWT token for 
    subsequent requests.  
    **NB**: Read the [section above](#authenticating-to-the-api) to get more information
+* **POST /api/auth/verify**
+    * **Summary**: Verifies ID token from the mobile application
+    * **Despcription**: Authenticate a user using Google's ID token sent from the mobile application.
+  
 ### Groups
 * **POST /api/groups**
    * **Summary**: Create a group
@@ -207,88 +211,6 @@ header should be gotten from the response body.
          "message": "Group retrieved successfully",
          "status": "success"
       }
-
-* **POST /api/groups/{id}/subscribe**  
-   * **Summary**: Subscribe to a group
-   * **Description**: Subscribe a user to a group by ID, it is required that the
-   user bearer token is added to the request header.
-   * **Sample Request URL**: `{host}/api/groups/9d8be7c8-d2f7-4e4a-8897-9a08e5a18340/subscribe`
-   * **Security**: 
-      ```Json
-      "security": [
-            { "Bearer": [] }
-            ]
-      ```
-   * **Responses**:  
-      Status Code: 200  
-      Body:  
-      ```Json
-      {
-         "data": {
-            "id": "7078c94c-0138-4488-bc74-e3be3f53271e",
-            "user_id": "864f1310-b0a0-45uc-9407-90ea7e1871zf",
-            "group_id": "9d8be7c8-d2f7-4e4a-8897-9a08e5a18340",
-            "created_at": "2023-09-22T05:50:13.262Z",
-            "updated_at": "2023-09-22T05:50:13.262Z"
-         },
-         "message": "User successfully subscribed to group",
-         "status": "success"
-      }
-      ```   
-      Status Code: 404  
-      Body:  
-      ```Json
-      {
-         "message": "Invalid user or group ID. Please check the values and try again",
-         "status": "error"
-      }
-      ```
-      Status Code: 409  
-      Body:
-      ```Json
-      {
-         "message": "User already subscribed to group",
-         "status": "error"
-      }
-      ```
-
-* **POST /api/groups/{id}/unsubscribe**
-   * **Summary**: Unsubscribe to a group
-   * **Description**: Unsubscribe a user from a group by ID, it is required that the
-   user bearer token is added to the request header.
-   * **Sample Request URL**: `{host}/api/groups/9d8be7c8-d2f7-4e4a-8897-9a08e5a18340/unsubscribe`
-   * **Security**: 
-      ```Json
-      "security": [
-            { "Bearer": [] }
-            ]
-      ```
-   * **Responses**:
-      Status Code: 200  
-      Body: 
-      ```Json
-      {
-         "data": null,
-         "message": "User successfully unsubscribed to group",
-         "status": "success"
-      }
-      ```
-      Status Code: 404  
-      Body:
-      ```Json
-      {
-         "message": "User not subscribed to this group",
-         "status": "error"
-      }
-      ```
-      Status Code: 409  
-      Body:
-      ```Json
-       {
-         "message": "Failed to unsubscribe user from group",
-         "status": "error"
-      }
-      ```
 * **GET /api/groups/user**
    * **Summary**: Get groups a user is subscribed to.
    * **Description**: Get a list of groups a user is subscribed to, it is required that the user bearer token is added to the request header.
@@ -624,6 +546,87 @@ header should be gotten from the response body.
       }
       ```
 
+* **POST /api/events/{id}/subscribe**
+    * **Summary**: Subscribe to a event
+    * **Description**: Subscribe a user to a event by ID, it is required that the
+      user bearer token is added to the request header.
+    * **Sample Request URL**: `{host}/api/events/9d8be7c8-d2f7-4e4a-8897-9a08e5a18340/subscribe`
+    * **Security**:
+       ```Json
+       "security": [
+             { "Bearer": [] }
+             ]
+       ```
+    * **Responses**:  
+      Status Code: 200  
+      Body:
+       ```Json
+       {
+          "data": {
+             "id": "7078c94c-0138-4488-bc74-e3be3f53271e",
+             "user_id": "864f1310-b0a0-45uc-9407-90ea7e1871zf",
+             "event_id": "9d8be7c8-d2f7-4e4a-8897-9a08e5a18340",
+             "created_at": "2023-09-22T05:50:13.262Z",
+             "updated_at": "2023-09-22T05:50:13.262Z"
+          },
+          "message": "User successfully subscribed to event",
+          "status": "success"
+       }
+       ```   
+      Status Code: 404  
+      Body:
+       ```Json
+       {
+          "message": "Invalid user or event ID. Please check the values and try again",
+          "status": "error"
+       }
+       ```
+      Status Code: 409  
+      Body:
+       ```Json
+       {
+          "message": "User already subscribed to event",
+          "status": "error"
+       }
+       ```
+
+* **POST /api/events/{id}/unsubscribe**
+    * **Summary**: Unsubscribe to a event
+    * **Description**: Unsubscribe a user from a event by ID, it is required that the
+      user bearer token is added to the request header.
+    * **Sample Request URL**: `{host}/api/events/9d8be7c8-d2f7-4e4a-8897-9a08e5a18340/unsubscribe`
+    * **Security**:
+       ```Json
+       "security": [
+             { "Bearer": [] }
+             ]
+       ```
+    * **Responses**:
+      Status Code: 200  
+      Body:
+       ```Json
+       {
+          "data": null,
+          "message": "User successfully unsubscribed to event",
+          "status": "success"
+       }
+       ```
+      Status Code: 404  
+      Body:
+       ```Json
+       {
+          "message": "User not subscribed to this event",
+          "status": "error"
+       }
+       ```
+      Status Code: 409  
+      Body:
+       ```Json
+        {
+          "message": "Failed to unsubscribe user from event",
+          "status": "error"
+       }
+       ```
 
 
 ### Images
