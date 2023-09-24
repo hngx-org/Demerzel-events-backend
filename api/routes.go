@@ -53,25 +53,25 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 
 	// Event Routes
-	eventRoutes := apiRoutes.Group("/events")
-	eventRoutes.POST("/", handlers.CreateEventHandler)
-	eventRoutes.GET("/", handlers.ListEventsHandler)
-	eventRoutes.GET("/friends", handlers.ListFriendsEventsHandler)
-	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
-	eventRoutes.POST("join/:event_id", handlers.JoinEventHandler)
-	eventRoutes.POST("leave/:event_id", handlers.LeaveEventHandler)
-	eventRoutes.GET("/group/:id/", handlers.GetGroupEventsHandler)
-	eventRoutes.GET("/subscriptions", handlers.GetUserEventSubscriptions)
-	eventRoutes.POST("/:id/subscribe", handlers.SubscribeUserToEvent)
-	eventRoutes.POST("/:id/unsubscribe", handlers.UnsubscribeFromEvent)
-	eventRoutes.GET("/:event_id", handlers.GetEventHandler)
+	//apiRoutes := apiRoutes.Group("/events")
+	apiRoutes.POST("/events", handlers.CreateEventHandler)
+	apiRoutes.GET("/events", handlers.ListEventsHandler)
+	apiRoutes.GET("/events/friends", handlers.ListFriendsEventsHandler)
+	apiRoutes.GET("/events/comments/:event_id", handlers.GetCommentsHandler)
+	apiRoutes.POST("/events/join/:event_id", handlers.JoinEventHandler)
+	apiRoutes.POST("/events/leave/:event_id", handlers.LeaveEventHandler)
+	apiRoutes.GET("/events/group/:id", handlers.GetGroupEventsHandler)
+	apiRoutes.GET("/events/subscriptions", handlers.GetUserEventSubscriptions)
+	apiRoutes.POST("/events/:id/subscribe", handlers.SubscribeUserToEvent)
+	apiRoutes.POST("/events/:id/unsubscribe", handlers.UnsubscribeFromEvent)
+	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
 	// Get events in group returns bad data.
 
 	//comment routes
-	commentRoutes := apiRoutes.Group("/comments")
-	commentRoutes.POST("/", handlers.CreateComment)
-	commentRoutes.PUT("/:comment_id", handlers.UpdateComments)
-	commentRoutes.DELETE("/:comment_id", handlers.DeleteComment)
+	//commentRoutes := apiRoutes.Group("/comments")
+	apiRoutes.POST("/comments", handlers.CreateComment)
+	apiRoutes.PUT("/comments/:comment_id", handlers.UpdateComments)
+	apiRoutes.DELETE("/comments/:comment_id", handlers.DeleteComment)
 
 	return r
 }
