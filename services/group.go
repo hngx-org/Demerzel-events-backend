@@ -107,12 +107,12 @@ func ListGroups(f Filter) ([]models.Group, error) {
 	args := []any{"%", f.Search.Name, "%"}
 
 	if f.Search.Name != "" {
-		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Find(&groups)
+		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Preload("Events").Find(&groups)
 		err = result.Error
 	}
 
 	if f.Search.Name == "" {
-		result := db.DB.Find(&groups)
+		result := db.DB.Preload("Events").Find(&groups)
 		err = result.Error
 	}
 
@@ -156,7 +156,7 @@ func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
 
-	result := db.DB.Where("id = ?", id).Preload("Members.User").First(&group)
+	result := db.DB.Where("id = ?", id).Preload("Members.User").Preload("Events").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("Group doesn't exist")
