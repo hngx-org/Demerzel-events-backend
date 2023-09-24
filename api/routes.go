@@ -20,8 +20,6 @@ func BuildRoutesHandler() *gin.Engine {
 	r.Use(cors.Default())
 
 	r.GET("/health", handlers.HealthHandler)
-	r.POST("/events", handlers.CreateEventHandler)
-	r.GET("/events", handlers.ListEventsHandler)
 
 	r.POST("/api/auth/verify", handlers.HandleAuth)
 
@@ -46,7 +44,6 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
 	apiRoutes.GET("/groups/:id", handlers.GetGroupById)
 	apiRoutes.DELETE("/groups/:id", handlers.DeleteGroup)
-	apiRoutes.GET("groups/:id/events", handlers.GroupEventsById)
 
 	// User routes
 	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
@@ -57,20 +54,22 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// Event Routes
 	eventRoutes := apiRoutes.Group("/events")
-	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.POST("/", handlers.CreateEventHandler)
+	eventRoutes.GET("/", handlers.ListEventsHandler)
 	eventRoutes.GET("/friends", handlers.ListFriendsEventsHandler)
-	eventRoutes.POST("/upload", handlers.UploadFileHandler)
+	eventRoutes.GET("/:event_id", handlers.GetEventHandler)
 	eventRoutes.GET("/comments/:event_id", handlers.GetCommentsHandler)
-	eventRoutes.GET("/:eventid", handlers.GetEventHandler)
 	eventRoutes.POST("/:id/subscribe", handlers.SubscribeUserToEvent)
 	eventRoutes.POST("/:id/unsubscribe", handlers.UnsubscribeFromEvent)
+	eventRoutes.POST("join/:event_id", handlers.JoinEventHandler)
+	eventRoutes.POST("leave/:event_id", handlers.LeaveEventHandler)
 	eventRoutes.POST("/subscriptions", handlers.GetUserEventSubscriptions)
+	// Get events in group returns bad data.
+	eventRoutes.GET("/group/:id/", handlers.GetGroupEventsHandler)
 
 	//comment routes
 	commentRoutes := apiRoutes.Group("/comments")
 	commentRoutes.POST("/", handlers.CreateComment)
-	commentRoutes.GET("/:comment_id", handlers.GetComment)
 	commentRoutes.PUT("/:comment_id", handlers.UpdateComments)
 	commentRoutes.DELETE("/:comment_id", handlers.DeleteComment)
 

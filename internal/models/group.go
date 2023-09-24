@@ -14,7 +14,7 @@ type Group struct {
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
 	Members   []UserGroup `json:"members,omitempty" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
-	Events    []Event     `json:"events,omitempty"`
+	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
 }
 
 type UserGroup struct {
@@ -58,4 +58,20 @@ func (g *Group) UpdateGroupByID(tx *gorm.DB) error {
 		return result.Error
 	}
 	return nil
+}
+
+func (g *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
+	var events []Event
+
+	err := tx.Table("group_events").
+		Select("events.id, events.title, events.description, events.creator, events.location, events.start_date, events.end_date, events.start_time, events.end_time, events.created_at, events.updated_at").
+		Joins("JOIN events on events.id = group_events.event_id").
+		Where("group_events.group_id = ?", g.ID).
+		Scan(&events).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &events, nil
 }
