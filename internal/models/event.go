@@ -194,10 +194,16 @@ func DetachUserFromEvent(tx *gorm.DB, userID, eventID string) (*Event, error) {
 }
 
 // ListEvents retrieves all events.
-func ListEvents(tx *gorm.DB) ([]Event, error) {
+func ListEvents(tx *gorm.DB, startDate string) ([]Event, error) {
+
 	var events []Event
 
-	err := tx.Order("start_date, start_time").Preload("Creator").Preload("Attendees").Preload("Groups").Find(&events).Error
+	query := tx.Order("start_date, start_time")
+
+	if startDate != "" && IsValidDate(startDate) {
+		query.Where(&Event{StartDate: startDate})
+	}
+	err := query.Preload("Creator").Preload("Attendees").Preload("Groups").Find(&events).Error
 
 	if err != nil {
 		return nil, err
@@ -274,4 +280,11 @@ func GetUserEventSubscriptions(tx *gorm.DB, userID string) (*[]Event, error) {
 	}
 
 	return &user.InterestedEvents, nil
+}
+
+func IsValidDate(date string) bool {
+	layout := "2006-01-02"
+	_, err := time.Parse(layout, date)
+
+	return err == nil
 }
