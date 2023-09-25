@@ -13,7 +13,7 @@ type Group struct {
 	Image     string      `json:"image"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
-	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
+	Members   []UserGroup `json:"members,omitempty" gorm:"foreignkey:GroupID;association_foreignkey:ID"`
 	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
 }
 
@@ -61,9 +61,10 @@ func (g *Group) UpdateGroupByID(tx *gorm.DB) error {
 }
 
 func (g *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
-	// var events []Event
+	//var events []Event
 	var group Group
 	err := tx.Preload("Events").Where("id=?", g.ID).First(&group).Error
+
 	if err != nil {
 		return nil, err
 	}

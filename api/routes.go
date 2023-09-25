@@ -53,7 +53,7 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 
 	// Event Routes
-	// apiRoutes := apiRoutes.Group("/events")
+	//apiRoutes := apiRoutes.Group("/events")
 	apiRoutes.POST("/events", handlers.CreateEventHandler)
 	apiRoutes.GET("/events", handlers.ListEventsHandler)
 	apiRoutes.GET("/events/friends", handlers.ListFriendsEventsHandler)
@@ -67,8 +67,8 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
 	// Get events in group returns bad data.
 
-	// comment routes
-	// commentRoutes := apiRoutes.Group("/comments")
+	//comment routes
+	//commentRoutes := apiRoutes.Group("/comments")
 	apiRoutes.POST("/comments", handlers.CreateComment)
 	apiRoutes.PUT("/comments/:comment_id", handlers.UpdateComments)
 	apiRoutes.DELETE("/comments/:comment_id", handlers.DeleteComment)
