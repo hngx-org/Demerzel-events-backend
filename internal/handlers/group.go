@@ -6,13 +6,10 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-
 	"demerzel-events/dependencies/cloudinary"
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -86,7 +83,7 @@ func CreateGroup(ctx *gin.Context) {
 
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
-	id := c.Params.ByName("id")
+	id := c.Param("id")
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.Error(
@@ -97,7 +94,7 @@ func UpdateGroup(c *gin.Context) {
 		return
 	}
 
-	code, data, err := services.UpdateGroupService(db.DB, req, id)
+	data, code, err := services.UpdateGroupById(id, &req)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
@@ -180,9 +177,9 @@ func DeleteGroup(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Please provide a valid group id")
 		return
 	}
-	err := services.DeleteGroup(db.DB, id)
+	code, err := services.DeleteGroup(id)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
 
@@ -193,13 +190,12 @@ func DeleteGroup(c *gin.Context) {
 func GroupEventsById(c *gin.Context) {
 	id := c.Param("id")
 
-	group := models.Group{ID: id}
-	result, err := group.GetGroupEvents(db.DB)
+	result, code, err := services.GetEventByID(id)
 
 	if err != nil {
-		response.Error(c, 500, "Can't process your request")
+		response.Error(c, code, err.Error())
 		return
 	}
 
-	response.Success(c, 200, "Group events retrieved", result)
+	response.Success(c, http.StatusOK, "Group events retrieved", result)
 }

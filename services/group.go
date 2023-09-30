@@ -67,37 +67,28 @@ func DeleteUserGroup(userID, groupID string) error {
 	return result.Error
 }
 
-func UpdateGroupService(
-	tx *gorm.DB,
-	req models.UpdateGroupRequest,
-	id string,
-) (int, models.Group, error) {
-	group := models.Group{
-		ID: id,
-	}
+func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group, int, error) {
 
-	err := group.GetGroupByID(tx)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return http.StatusNotFound, group, fmt.Errorf(
-				"group with the specified id does not exist",
-			)
+	group := &models.Group{}
+
+	result := db.DB.Where("id = ?", id).First(&group)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, http.StatusNotFound, fmt.Errorf("group doesn't exist")
 		}
-		return http.StatusBadRequest, group, err
+		return nil, http.StatusInternalServerError, result.Error
 	}
 
-	// check if a `name` was passed in the request body
-	if req.Name != "" {
-		group.Name = req.Name
+	group.Name = data.Name
+
+	result = db.DB.Save(&group)
+
+	if result.Error != nil {
+		return nil, http.StatusInternalServerError, result.Error
 	}
 
-	// update group id
-	err = group.UpdateGroupByID(tx)
-	if err != nil {
-		return http.StatusInternalServerError, group, err
-	}
-
-	return http.StatusOK, group, nil
+	return group, http.StatusOK, nil
 }
 
 // query filter struct
@@ -148,16 +139,22 @@ func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
 	return groups, http.StatusOK, nil
 }
 
-func DeleteGroup(tx *gorm.DB, id string) error {
-	// Delete group with specified id.
-	db := tx.Delete(&models.Group{}, "id = ?", id)
-	if db.Error != nil {
-		return db.Error
-	} else if db.RowsAffected < 1 {
-		return fmt.Errorf("group with id=%s doesn't exist", id)
+func DeleteGroup(id string) (int, error) {
+
+	group, err := GetGroupById(id)
+
+	if err != nil {
+		return http.StatusBadRequest, err
 	}
 
-	return nil
+	err = db.DB.Delete(&group).Error
+
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+
 }
 
 func GetGroupById(id string) (*models.Group, error) {
@@ -167,7 +164,7 @@ func GetGroupById(id string) (*models.Group, error) {
 	result := db.DB.Where("id = ?", id).Preload("Members.User").Preload("Events").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("Group doesn't exist")
+			return nil, fmt.Errorf("group doesn't exist")
 		}
 		return nil, result.Error // Return the actual error for other errors
 	}

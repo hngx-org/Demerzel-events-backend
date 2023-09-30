@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
@@ -42,11 +41,11 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	_, eventErr := models.GetEventByID(db.DB, input.EventId)
+	_, code, eventErr := services.GetEventByID( input.EventId)
 
 	if eventErr != nil {
 		if eventErr.Error() == "record not found" {
-			response.Error(c, http.StatusNotFound, "Event does not exist to comment on")
+			response.Error(c, code, "Event does not exist to comment on")
 			return
 		}
 
@@ -92,13 +91,10 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	_, eventexist := models.GetEventByID(db.DB, eventId)
-	if eventexist != nil {
-		if eventexist.Error() == "record not found" {
-			response.Error(c, http.StatusNotFound, "Event doesn't exist")
-			return
-		}
-		response.Error(c, http.StatusInternalServerError, "An error occurred")
+	_, code, eventExist := services.GetEventByID( eventId)
+
+	if eventExist != nil {
+		response.Error(c, code, "Event does not exist")
 		return
 	}
 

@@ -43,30 +43,3 @@ func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// checks if group with the id exists
-func (g *Group) GetGroupByID(tx *gorm.DB) error {
-	result := tx.Preload("Events").First(&g, "id=?", g.ID)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (g *Group) UpdateGroupByID(tx *gorm.DB) error {
-	result := tx.Model(&g).Update("name", g.Name)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
-}
-
-func (g *Group) GetGroupEvents(tx *gorm.DB) (*[]Event, error) {
-	// var events []Event
-	var group Group
-	err := tx.Preload("Events").Where("id=?", g.ID).First(&group).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &group.Events, nil
-}

@@ -53,22 +53,20 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 
 	// Event Routes
-	// apiRoutes := apiRoutes.Group("/events")
 	apiRoutes.POST("/events", handlers.CreateEventHandler)
 	apiRoutes.GET("/events", handlers.ListEventsHandler)
+	apiRoutes.GET("/events/upcoming", handlers.ListUpcomingEventsHandler)
 	apiRoutes.GET("/events/friends", handlers.ListFriendsEventsHandler)
 	apiRoutes.GET("/events/comments/:event_id", handlers.GetCommentsHandler)
-	apiRoutes.POST("/events/join/:event_id", handlers.JoinEventHandler)
-	apiRoutes.POST("/events/leave/:event_id", handlers.LeaveEventHandler)
 	apiRoutes.GET("/events/group/:id", handlers.GetGroupEventsHandler)
 	apiRoutes.GET("/events/subscriptions", handlers.GetUserEventSubscriptions)
 	apiRoutes.POST("/events/:id/subscribe", handlers.SubscribeUserToEvent)
 	apiRoutes.POST("/events/:id/unsubscribe", handlers.UnsubscribeFromEvent)
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
+	apiRoutes.DELETE("/events/:event_id", handlers.DeleteEventHandler)
 	// Get events in group returns bad data.
 
 	// comment routes
-	// commentRoutes := apiRoutes.Group("/comments")
 	apiRoutes.POST("/comments", handlers.CreateComment)
 	apiRoutes.PUT("/comments/:comment_id", handlers.UpdateComments)
 	apiRoutes.DELETE("/comments/:comment_id", handlers.DeleteComment)
