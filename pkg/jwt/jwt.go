@@ -3,6 +3,7 @@ package jwt
 import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"os"
 	"time"
 )
 
@@ -52,4 +53,22 @@ func DecodeToken(signedToken string) (jwt.MapClaims, error) {
 	}
 
 	return nil, fmt.Errorf("error: invalid jwt token")
+}
+
+func VerifyFromBearer(value string) (jwt.MapClaims, error) {
+	if value == "" {
+		return nil, fmt.Errorf("authentication header is requires")
+	}
+
+	token := value[len("Bearer "):]
+	if token == "" {
+		return nil, fmt.Errorf("authentication header is required")
+	}
+
+	claims, err := VerifyToken(token, os.Getenv("JWT_SECRET"))
+	if err != nil {
+		return nil, err
+	}
+
+	return claims, nil
 }
