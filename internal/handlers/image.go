@@ -47,6 +47,5 @@ func UploadFileHandler(c *gin.Context) {
 	}
 
 	response.Success(c, http.StatusOK, "File uploaded", map[string]string{"url": url})
-	return
 
 }
