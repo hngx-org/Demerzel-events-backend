@@ -55,5 +55,11 @@ func HandleOAuthCallBack(c *gin.Context) {
 		response.Error(c, http.StatusInternalServerError, "An error occurred while generating authentication token")
 	}
 
-	response.Success(c, http.StatusOK, "Authentication successful", types.ResponseMap{"token": token})
+	refreshToken, err := jwt.CreateToken(types.ResponseMap{"id": user.Id}, os.Getenv("JWT_SECRET"), 730)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "An error occurred while generating authentication token")
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Authentication successful", types.ResponseMap{"token": token, "refreshToken": refreshToken})
 }
