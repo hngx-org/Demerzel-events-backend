@@ -3,6 +3,7 @@ package helpers
 import (
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,4 +26,11 @@ func GetLimitAndOffset(c *gin.Context) (*int, *int, error) {
 
 	offset := (pageInt - 1) * limitInt
 	return &limitInt, &offset, nil
+}
+
+func IsValidDate(date string) bool {
+	layout := "2006-01-02"
+	_, err := time.Parse(layout, date)
+
+	return err == nil
 }

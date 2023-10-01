@@ -90,7 +90,7 @@ func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
 	return commentResponse, nil
 }
 
-func GetComments(eventId string, limit, offset int) ([]*models.CommentResponse, int, error) {
+func GetComments(eventId string, limit int, offset int) ([]*models.CommentResponse, int, error) {
 	var comments []*models.Comment
 	var totalComments int64
 

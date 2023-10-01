@@ -41,7 +41,7 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	_, code, eventErr := services.GetEventByID( input.EventId)
+	_, code, eventErr := services.GetEventByID(input.EventId)
 
 	if eventErr != nil {
 		if eventErr.Error() == "record not found" {
@@ -78,7 +78,7 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	_, code, eventExist := services.GetEventByID( eventId)
+	_, code, eventExist := services.GetEventByID(eventId)
 
 	if eventExist != nil {
 		response.Error(c, code, "Event does not exist")
