@@ -4,6 +4,7 @@ import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -89,13 +90,14 @@ func GetCommentByCommentId(commentId string) (*models.CommentResponse, error) {
 	return commentResponse, nil
 }
 
-func GetComments(eventId string, perPage, offset int) ([]*models.CommentResponse, int, error) {
+func GetComments(eventId string, limit, offset int) ([]*models.CommentResponse, int, error) {
 	var comments []*models.Comment
 	var totalComments int64
 
+	fmt.Println(limit, offset)
 	// Query for comments with pagination
 	err := db.DB.Where("event_id = ?", eventId).Preload("Creator").
-		Offset(offset).Limit(perPage).Find(&comments).Error
+		Offset(offset).Limit(limit).Find(&comments).Error
 	if err != nil {
 		log.Println("Error fetching comments from db")
 		return nil, int(totalComments), err
