@@ -2,14 +2,16 @@ package handlers
 
 import (
 	"bytes"
+	"demerzel-events/dependencies/cloudinary"
+	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
+	"demerzel-events/pkg/response"
+	"demerzel-events/services"
 	"fmt"
 	"mime/multipart"
 	"net/http"
 	"os"
-	"demerzel-events/dependencies/cloudinary"
-	"demerzel-events/internal/models"
-	"demerzel-events/pkg/response"
-	"demerzel-events/services"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -106,53 +108,56 @@ func UpdateGroup(c *gin.Context) {
 func ListGroups(c *gin.Context) {
 	name := c.DefaultQuery("name", "")
 
-	f := services.Filter{
-		Search: struct{ Name string }{
-			Name: name,
-		},
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
 	}
 
-	groups, err := services.ListGroups(f)
+	groups, totalGroups, err := services.ListGroups(name, *limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
 		return
 	}
 
-	var message string
-
-	if len(groups) == 0 {
-		message = "No groups"
-	}
-
-	if len(groups) > 0 {
-		message = "Groups retrieved successfully"
-	}
-
-	response.Success(c, http.StatusOK, message, groups)
+	response.Success(c, http.StatusOK, "Groups retrieved successfully", map[string]interface{}{
+		"groups":       groups,
+		"total_groups": totalGroups,
+	})
 }
 
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
-
 	rawUser, exists := c.Get("user")
-
 	if !exists {
 		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
 		return
 	}
-	user, ok := rawUser.(*models.User)
 
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusConflict, "error: invalid user type in context")
 		return
 	}
 
-	userGroups, code, err := services.GetGroupsByUserId(user.Id)
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
 	if err != nil {
-		response.Error(c, code, err.Error())
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", userGroups)
+
+	userGroups, totalUserGroups, err := services.GetGroupsByUserId(user.Id, *limit, *offset)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Fetched all user groups", map[string]interface{}{
+		"user_groups":       userGroups,
+		"total_user_groups": totalUserGroups,
+	})
 }
 
 func GetGroupById(c *gin.Context) {

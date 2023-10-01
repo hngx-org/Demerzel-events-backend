@@ -91,52 +91,47 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-// query filter struct
-type Filter struct {
-	Search struct {
-		Name string
-	}
-}
-
 // get groups
-func ListGroups(f Filter) ([]models.Group, error) {
-	var err error
+func ListGroups(nameFilter string, limit int, offset int) ([]models.Group, *int64, error) {
 	groups := make([]models.Group, 0)
+	var totalGroups int64
 
-	args := []any{"%", f.Search.Name, "%"}
+	args := []any{"%", nameFilter, "%"}
 
-	if f.Search.Name != "" {
-		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Preload("Events").Find(&groups)
-		err = result.Error
+	dbQuery := db.DB
+	if nameFilter != "" {
+		dbQuery = dbQuery.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...))
 	}
 
-	if f.Search.Name == "" {
-		result := db.DB.Preload("Events").Find(&groups)
-		err = result.Error
-	}
+	err := dbQuery.Preload("Events").
+		Offset(offset).Limit(limit).Find(&groups).Error
 
 	if err != nil {
-		return make([]models.Group, 0), err
+		return nil, nil, err
 	}
 
-	return groups, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+
+	return groups, &totalGroups, nil
 }
 
-func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
-	if _, err := GetUserById(userId); err != nil {
-		return nil, http.StatusNotFound, err
-	}
+func GetGroupsByUserId(userId string, limit int, offset int) ([]models.Group, *int64, error) {
 	var groups []models.Group
-	res := db.DB.
+	var totalGroups int64
+
+	dbQuery := db.DB.
 		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
-		Where("user_groups.user_id = ?", userId).
-		Preload("Events").Find(&groups)
+		Where("user_groups.user_id = ?", userId)
+
+	res := dbQuery.Preload("Events").
+		Offset(offset).Limit(limit).Find(&groups)
 
 	if res.Error != nil {
-		return nil, http.StatusNotFound, res.Error
+		return nil, nil, res.Error
 	}
 
-	return groups, http.StatusOK, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	return groups, &totalGroups, nil
 }
 
 func DeleteGroup(id string) (int, error) {

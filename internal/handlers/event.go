@@ -6,6 +6,7 @@ import (
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
+	"math"
 	"net/http"
 	"reflect"
 
@@ -263,7 +264,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	userGroups, _, err := services.GetGroupsByUserId(user.Id)
+	userGroups, _, err := services.GetGroupsByUserId(user.Id, math.MaxInt64, 1) // A hack for now, not that I woulxh home and start fighting
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to get groups which user belongs to:"+err.Error())
