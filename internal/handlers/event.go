@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetGroupEventsHandler(c *gin.Context) {
@@ -119,7 +121,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !services.IsValidDate(input.StartDate) {
+	if !helpers.IsValidDate(input.StartDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid StartDate. Should follow format 2023-09-21")
 		return
 	}
@@ -134,7 +136,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !services.IsValidDate(input.EndDate) {
+	if !helpers.IsValidDate(input.EndDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid EndDate. Should follow format 2023-09-21")
 		return
 	}
@@ -192,13 +194,24 @@ func GetEventHandler(c *gin.Context) {
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
 	startDate := c.Query("start_date")
-	events, code, err := services.ListEvents(startDate)
+
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	events, totalEvents, code, err := services.ListEvents(startDate, *limit, *offset)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{"events": events})
+	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{
+		"events":       events,
+		"total_events": *totalEvents,
+	})
 }
 
 func ListUpcomingEventsHandler(c *gin.Context) {

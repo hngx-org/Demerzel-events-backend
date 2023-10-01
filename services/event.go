@@ -3,10 +3,12 @@ package services
 import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -30,7 +32,7 @@ func ListUpcomingEvents() ([]models.Event, error) {
 
 func DeleteEvent(eventID string, userID string) (int, error) {
 
-	event, code,  err := GetEventByID(eventID)
+	event, code, err := GetEventByID(eventID)
 
 	if err != nil {
 		return code, err
@@ -81,7 +83,7 @@ func CreateEvent(event *models.NewEvent) (*models.Event, int, error) {
 	}
 
 	if len(event.GroupId) >= 1 {
-		for i :=0; i < len(event.GroupId); i++{
+		for i := 0; i < len(event.GroupId); i++ {
 			newGroupEvent := models.NewGroupEvent{
 				EventId: createdEvent.Id,
 				GroupId: event.GroupId[i],
@@ -113,26 +115,28 @@ func CreateGroupEvent(groupEvent *models.NewGroupEvent) (*models.GroupEvent, int
 }
 
 // ListEvents retrieves all events.
-func ListEvents( startDate string) ([]models.Event, int, error) {
-
+func ListEvents(startDate string, limit int, offset int) ([]models.Event, *int64, int, error) {
 	var events []models.Event
+	var totalEvents int64
 
 	query := db.DB.Order("start_date, start_time")
 
-	if startDate != "" && IsValidDate(startDate) {
+	if startDate != "" && helpers.IsValidDate(startDate) {
 		query.Where(&models.Event{StartDate: startDate})
 	}
-	err := query.Preload("Creator").Preload("Attendees").Preload("Groups").Find(&events).Error
+	err := query.Preload("Creator").Preload("Attendees").Preload("Groups").
+		Offset(offset).Limit(limit).Find(&events).Error
 
 	if err != nil {
-		return nil, http.StatusInternalServerError, err
+		return nil, nil, http.StatusInternalServerError, err
 	}
 
-	return events, http.StatusOK, nil
+	query.Model(&models.Event{}).Count(&totalEvents)
 
+	return events, &totalEvents, http.StatusOK, nil
 }
 
-func ListEventsInGroups( groupIDs []string) ([]models.Event, int, error) {
+func ListEventsInGroups(groupIDs []string) ([]models.Event, int, error) {
 	var events []models.Event
 
 	err := db.DB.Model(&models.Event{}).
@@ -176,7 +180,7 @@ func SubscribeUserToEvent(userID, eventID string) (*models.InterestedEvent, int,
 	return nil, http.StatusForbidden, fmt.Errorf("user already subscribed to event")
 }
 
-func UnsubscribeUserFromEvent( userID, eventID string) (int, error) {
+func UnsubscribeUserFromEvent(userID, eventID string) (int, error) {
 	var interestedEvent models.InterestedEvent
 	result := db.DB.Where("event_id = ?", eventID).Where("user_id = ?", userID).First(&interestedEvent)
 	if result.Error != nil {
@@ -191,7 +195,7 @@ func UnsubscribeUserFromEvent( userID, eventID string) (int, error) {
 	return http.StatusInternalServerError, result.Error
 }
 
-func GetUserEventSubscriptions( userID string) (*[]models.Event, int, error) {
+func GetUserEventSubscriptions(userID string) (*[]models.Event, int, error) {
 	var user models.User
 	result := db.DB.Where("id = ?", userID).Preload("InterestedEvents").First(&user)
 	if result.Error != nil {
@@ -199,11 +203,4 @@ func GetUserEventSubscriptions( userID string) (*[]models.Event, int, error) {
 	}
 
 	return &user.InterestedEvents, http.StatusOK, nil
-}
-
-func IsValidDate(date string) bool {
-	layout := "2006-01-02"
-	_, err := time.Parse(layout, date)
-
-	return err == nil
 }
