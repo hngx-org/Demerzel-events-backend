@@ -26,6 +26,7 @@ type Comment struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Creator   *User     `json:"creator" gorm:"foreignKey:CreatorId"`
 	CreatorId string    `json:"creator_id" gorm:"type:varchar(255)"`
+	Event	 *Event    `json:"event" gorm:"foreignKey:EventId; association_foreignkey:Id; constraint:OnDelete:CASCADE"`
 }
 
 type CommentResponse struct {

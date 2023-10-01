@@ -40,6 +40,7 @@ type Event struct {
 	Creator     *User     `json:"creator,omitempty" gorm:"foreignKey:CreatorId"`
 	Attendees   []User    `json:"attendees,omitempty" gorm:"many2many:interested_events"`
 	Groups      []Group   `json:"groups,omitempty" gorm:"many2many:group_events"`
+	Comments    []Comment `json:"comments,omitempty" gorm:"foreignKey:EventId;constraint:OnDelete:CASCADE"`
 }
 
 func (e *Event) BeforeCreate(tx *gorm.DB) error {

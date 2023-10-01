@@ -1,27 +1,35 @@
 package handlers
 
 import (
-	"bytes"
-	"fmt"
-	"mime/multipart"
-	"net/http"
-	"os"
-	"demerzel-events/dependencies/cloudinary"
 	"demerzel-events/internal/models"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func CreateGroup(ctx *gin.Context) {
-	type jsonData struct {
-		Name string `json:"name" binding:"required"`
+
+	rawUser, exists := ctx.Get("user")
+
+	if !exists {
+		response.Error(ctx, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(ctx, http.StatusInternalServerError, "Invalid context user type")
+		return
 	}
 
 	var requestBody struct {
-		File      *multipart.FileHeader `form:"file"`
-		GroupData jsonData              `form:"jsonData"`
+		Name string `json:"name" binding:"required"`
+		Image string `json:"image" binding:"required"`
 	}
+
 
 	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
@@ -32,46 +40,18 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	var photUrl string = ""
-	fileToUpload := requestBody.File
-
-	if fileToUpload != nil {
-
-		image, err := fileToUpload.Open()
-		if err != nil {
-			response.Error(ctx, http.StatusBadRequest, err.Error())
-		}
-
-		buffer := new(bytes.Buffer)
-		_, err = buffer.ReadFrom(image)
-
-		if err != nil {
-			response.Error(ctx, http.StatusBadRequest, "Cannot process file:"+err.Error())
-			return
-		}
-
-		transport := cloudinary.Config{
-			ApiKey:    os.Getenv("CLOUDINARY_API_KEY"),
-			ApiSecret: os.Getenv("CLOUDINARY_API_SECRET"),
-			CloudName: os.Getenv("CLOUDINARY_CLOUD_NAME"),
-			BaseUrl:   os.Getenv("CLOUDINARY_BASE_URL"),
-		}
-
-		imageUrl, err := transport.UploadFile(buffer.Bytes(), fileToUpload.Filename)
-
-		if err != nil {
-			response.Error(ctx, http.StatusBadRequest, "Could not upload to file to bucket:"+err.Error())
-			return
-		}
-
-		photUrl = imageUrl
-	}
-
 	var newGroup models.Group
-	newGroup.Name = requestBody.GroupData.Name
-	newGroup.Image = photUrl
+	newGroup.Name = requestBody.Name
+	newGroup.Image = requestBody.Image
 
-	services.CreateGroup(&newGroup)
+	group, err := services.CreateGroup(&newGroup)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
+	services.SubscribeUserToGroup(user.Id, group.ID)
+	services.SendNewGroupNotificationToAllUsers(newGroup.Name, user.Name, user.Id)
 
 	response.Success(
 		ctx,
@@ -112,7 +92,9 @@ func ListGroups(c *gin.Context) {
 		},
 	}
 
-	groups, err := services.ListGroups(f)
+	fmt.Println(f)
+
+	groups, err := services.ListGroups()
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
 		return
@@ -162,9 +144,9 @@ func GetGroupById(c *gin.Context) {
 		return
 	}
 
-	group, err := services.GetGroupById(id)
+	group, code, err := services.GetGroupWithDetails(id)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
 
