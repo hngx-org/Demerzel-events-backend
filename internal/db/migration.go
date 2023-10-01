@@ -11,7 +11,8 @@ func Migrate() error {
 		&models.GroupEvent{},
 		&models.InterestedEvent{},
 		&models.Comment{},
-		// &models.Image{},
+		&models.Notification{},
+		&models.UserNotification{},
 	)
 	return err
 }

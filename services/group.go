@@ -3,6 +3,7 @@ package services
 import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/types"
 	"errors"
 	"fmt"
 	"net/http"
@@ -98,28 +99,34 @@ type Filter struct {
 	}
 }
 
-// get groups
-func ListGroups(f Filter) ([]models.Group, error) {
-	var err error
-	groups := make([]models.Group, 0)
+func ListGroups() ([]types.GroupDetailResponse, error) {
+	var groupDetailsList []types.GroupDetailResponse
 
-	args := []any{"%", f.Search.Name, "%"}
+	query := `
+        SELECT 
+            g.id AS id,
+            g.name AS name,
+            g.image AS image,
+			g.created_at AS created_at,
+			g.updated_at AS updated_at,
+            COUNT(DISTINCT ge.id) AS events_count,
+            COUNT(DISTINCT ug.id) AS members_count
+        FROM
+            groups g
+        LEFT JOIN group_events ge ON g.id = ge.group_id
+        LEFT JOIN user_groups ug ON g.id = ug.group_id
+		WHERE
+			g.name LIKE ?
+        GROUP BY g.id
+    `
 
-	if f.Search.Name != "" {
-		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Preload("Events").Find(&groups)
-		err = result.Error
-	}
-
-	if f.Search.Name == "" {
-		result := db.DB.Preload("Events").Find(&groups)
-		err = result.Error
-	}
+	err := db.DB.Raw(query).Scan(&groupDetailsList).Error
 
 	if err != nil {
-		return make([]models.Group, 0), err
+		return nil, err
 	}
 
-	return groups, nil
+	return groupDetailsList, nil
 }
 
 func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
@@ -161,7 +168,7 @@ func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
 
-	result := db.DB.Where("id = ?", id).Preload("Members.User").Preload("Events").First(&group)
+	result := db.DB.Where("id = ?", id).Preload("Events").Preload("Members.User").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("group doesn't exist")
@@ -170,4 +177,51 @@ func GetGroupById(id string) (*models.Group, error) {
 	}
 
 	return &group, nil
+}
+
+func GetGroupEvents(id string) (*models.Group, error) {
+	var group models.Group
+	fmt.Printf("group id %s", id)
+
+	result := db.DB.Where("id = ?", id).Preload("Events", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at desc").Limit(3)
+		})
+	}).Preload("Members.User").First(&group)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("group doesn't exist")
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	return &group, nil
+}
+
+func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
+	var groupDetails types.GroupDetailResponse
+	var group models.Group
+
+	err := db.DB.Model(&models.Group{}).Where("id = ?", id).First(&group).Error
+
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	var eventCount int64
+	var memberCount int64
+
+	db.DB.Model(&models.GroupEvent{}).Where("group_id = ?", id).Count(&eventCount)
+	db.DB.Model(&models.UserGroup{}).Where("group_id = ?", id).Count(&memberCount)
+
+	groupDetails.Name = group.Name
+	groupDetails.Image = group.Image
+	groupDetails.ID = group.ID
+	groupDetails.CreatedAt = group.CreatedAt
+	groupDetails.UpdatedAt = group.UpdatedAt
+	groupDetails.EventsCount = eventCount
+	groupDetails.MembersCount = memberCount
+
+	return &groupDetails, http.StatusOK, nil
+
 }

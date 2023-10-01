@@ -71,5 +71,11 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/comments/:comment_id", handlers.UpdateComments)
 	apiRoutes.DELETE("/comments/:comment_id", handlers.DeleteComment)
 
+
+	// Notification routes
+	apiRoutes.GET("/notifications/all", handlers.ListNotifications)
+	apiRoutes.GET("/notifications", handlers.GetUserNotifications)
+	apiRoutes.PUT("/notifications/:id", handlers.UpdateUserNotification)
+
 	return r
 }

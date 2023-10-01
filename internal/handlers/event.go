@@ -14,7 +14,7 @@ func GetGroupEventsHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	events, err := services.GetGroupById(id)
+	events, err := services.GetGroupEvents(id)
 
 	if err != nil {
 		response.Error(c, 500, "Can't process your request")
@@ -312,6 +312,8 @@ func SubscribeUserToEvent(c *gin.Context) {
 		return
 	}
 
+	services.NotifyEventCreatorOnUserSubscription(event.CreatorId, event.Title, user.Name)
+
 	response.Success(c, http.StatusOK, "User successfully subscribed to event", nil)
 }
 
@@ -345,6 +347,8 @@ func UnsubscribeFromEvent(c *gin.Context) {
 		response.Error(c, code, err.Error())
 		return
 	}
+
+	services.NotifyEventCreatorOnUserUnSubscription(event.CreatorId, event.Title, user.Name)
 
 	response.Success(c, http.StatusOK, "User successfully unsubscribed to event", nil)
 }
