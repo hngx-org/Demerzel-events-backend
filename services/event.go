@@ -203,3 +203,19 @@ func GetUserEventSubscriptions(userID string) (*[]models.Event, error) {
 
 	return &user.InterestedEvents, nil
 }
+
+func GetEventAttendees(eventId string) (*[]models.User, error) {
+	var event models.Event
+
+	err := db.DB.Model(&models.Event{}).
+		Where("events.id = ?", eventId).
+		Select("events.id").
+		Preload("Attendees").
+		First(&event).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &event.Attendees, nil
+}
