@@ -119,12 +119,12 @@ func ListEvents(startDate string, limit int, offset int) ([]models.Event, *int64
 	var events []models.Event
 	var totalEvents int64
 
-	query := db.DB.Order("start_date, start_time")
-
+	query := db.DB
 	if startDate != "" && helpers.IsValidDate(startDate) {
-		query.Where(&models.Event{StartDate: startDate})
+		query = query.Where(&models.Event{StartDate: startDate})
 	}
-	err := query.Preload("Creator").Preload("Attendees").Preload("Groups").
+
+	err := query.Order("start_date, start_time").Preload("Creator").Preload("Attendees").Preload("Groups").
 		Offset(offset).Limit(limit).Find(&events).Error
 
 	if err != nil {
@@ -132,7 +132,6 @@ func ListEvents(startDate string, limit int, offset int) ([]models.Event, *int64
 	}
 
 	query.Model(&models.Event{}).Count(&totalEvents)
-
 	return events, &totalEvents, http.StatusOK, nil
 }
 

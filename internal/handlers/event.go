@@ -30,12 +30,6 @@ func GetGroupEventsHandler(c *gin.Context) {
 func CreateEventHandler(c *gin.Context) {
 	var input models.NewEvent
 
-	// Error if JSON request is invalid
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
-		return
-	}
-
 	rawUser, exists := c.Get("user")
 	if !exists {
 		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
@@ -45,6 +39,12 @@ func CreateEventHandler(c *gin.Context) {
 	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	// Error if JSON request is invalid
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
 		return
 	}
 
