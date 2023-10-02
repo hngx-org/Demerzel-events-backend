@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -41,7 +41,7 @@ func CreateComment(c *gin.Context) {
 		return
 	}
 
-	_, code, eventErr := services.GetEventByID( input.EventId)
+	_, code, eventErr := services.GetEventByID(input.EventId)
 
 	if eventErr != nil {
 		if eventErr.Error() == "record not found" {
@@ -64,24 +64,11 @@ func CreateComment(c *gin.Context) {
 
 func GetCommentsHandler(c *gin.Context) {
 	// Extract query parameters for pagination
-	page := c.DefaultQuery("page", "1")
-	perPage := c.DefaultQuery("per_page", "10")
-
-	// Convert page and perPage parameters to integers
-	pageInt, err := strconv.Atoi(page)
+	limit, offset, err := helpers.GetLimitAndOffset(c)
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid page parameter")
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	perPageInt, err := strconv.Atoi(perPage)
-	if err != nil {
-		response.Error(c, http.StatusBadRequest, "Invalid per_page parameter")
-		return
-	}
-
-	// Calculate the offset for pagination
-	offset := (pageInt - 1) * perPageInt
 
 	eventId := c.Param("event_id")
 
@@ -91,14 +78,14 @@ func GetCommentsHandler(c *gin.Context) {
 		return
 	}
 
-	_, code, eventExist := services.GetEventByID( eventId)
+	_, code, eventExist := services.GetEventByID(eventId)
 
 	if eventExist != nil {
 		response.Error(c, code, "Event does not exist")
 		return
 	}
 
-	comments, totalComments, err := services.GetComments(eventId, perPageInt, offset)
+	comments, totalComments, err := services.GetComments(eventId, *limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Error Could not access the database")
 		return

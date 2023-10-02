@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"math"
 	"net/http"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetGroupEventsHandler(c *gin.Context) {
@@ -27,12 +30,6 @@ func GetGroupEventsHandler(c *gin.Context) {
 func CreateEventHandler(c *gin.Context) {
 	var input models.NewEvent
 
-	// Error if JSON request is invalid
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
-		return
-	}
-
 	rawUser, exists := c.Get("user")
 	if !exists {
 		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
@@ -42,6 +39,12 @@ func CreateEventHandler(c *gin.Context) {
 	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	// Error if JSON request is invalid
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
 		return
 	}
 
@@ -119,7 +122,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !services.IsValidDate(input.StartDate) {
+	if !helpers.IsValidDate(input.StartDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid StartDate. Should follow format 2023-09-21")
 		return
 	}
@@ -134,7 +137,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !services.IsValidDate(input.EndDate) {
+	if !helpers.IsValidDate(input.EndDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid EndDate. Should follow format 2023-09-21")
 		return
 	}
@@ -192,13 +195,24 @@ func GetEventHandler(c *gin.Context) {
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
 	startDate := c.Query("start_date")
-	events, code, err := services.ListEvents(startDate)
+
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	events, totalEvents, code, err := services.ListEvents(startDate, *limit, *offset)
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{"events": events})
+	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{
+		"events":       events,
+		"total_events": *totalEvents,
+	})
 }
 
 func ListUpcomingEventsHandler(c *gin.Context) {
@@ -250,7 +264,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	userGroups, _, err := services.GetGroupsByUserId(user.Id)
+	userGroups, _, err := services.GetGroupsByUserId(user.Id, math.MaxInt64, 1) // A hack for now, not that I woulxh home and start fighting
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to get groups which user belongs to:"+err.Error())
@@ -365,9 +379,9 @@ func GetUserEventSubscriptions(c *gin.Context) {
 		return
 	}
 
-	events, code, err := services.GetUserEventSubscriptions(user.Id)
+	events, err := services.GetUserEventSubscriptions(user.Id)
 	if err != nil {
-		response.Error(c, code, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 

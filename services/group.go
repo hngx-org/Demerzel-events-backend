@@ -92,15 +92,9 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-// query filter struct
-type Filter struct {
-	Search struct {
-		Name string
-	}
-}
-
-func ListGroups() ([]types.GroupDetailResponse, error) {
+func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
 	var groupDetailsList []types.GroupDetailResponse
+	var totalGroups int64
 
 	query := `
         SELECT 
@@ -115,35 +109,37 @@ func ListGroups() ([]types.GroupDetailResponse, error) {
             groups g
         LEFT JOIN group_events ge ON g.id = ge.group_id
         LEFT JOIN user_groups ug ON g.id = ug.group_id
-		WHERE
-			g.name LIKE ?
         GROUP BY g.id
     `
 
-	err := db.DB.Raw(query).Scan(&groupDetailsList).Error
+	dbQuery := db.DB.Raw(query)
+	err := dbQuery.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return groupDetailsList, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	return groupDetailsList, &totalGroups, nil
 }
 
-func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
-	if _, err := GetUserById(userId); err != nil {
-		return nil, http.StatusNotFound, err
-	}
+func GetGroupsByUserId(userId string, limit int, offset int) ([]models.Group, *int64, error) {
 	var groups []models.Group
-	res := db.DB.
+	var totalGroups int64
+
+	dbQuery := db.DB.
 		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
-		Where("user_groups.user_id = ?", userId).
-		Preload("Events").Find(&groups)
+		Where("user_groups.user_id = ?", userId)
+
+	res := dbQuery.Preload("Events").
+		Offset(offset).Limit(limit).Find(&groups)
 
 	if res.Error != nil {
-		return nil, http.StatusNotFound, res.Error
+		return nil, nil, res.Error
 	}
 
-	return groups, http.StatusOK, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	return groups, &totalGroups, nil
 }
 
 func DeleteGroup(id string) (int, error) {

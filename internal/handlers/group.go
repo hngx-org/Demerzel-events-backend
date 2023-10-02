@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func CreateGroup(ctx *gin.Context) {
@@ -26,10 +28,9 @@ func CreateGroup(ctx *gin.Context) {
 	}
 
 	var requestBody struct {
-		Name string `json:"name" binding:"required"`
+		Name  string `json:"name" binding:"required"`
 		Image string `json:"image" binding:"required"`
 	}
-
 
 	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
@@ -49,7 +50,7 @@ func CreateGroup(ctx *gin.Context) {
 		response.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-	
+
 	services.SubscribeUserToGroup(user.Id, group.ID)
 	services.SendNewGroupNotificationToAllUsers(newGroup.Name, user.Name, user.Id)
 
@@ -84,57 +85,56 @@ func UpdateGroup(c *gin.Context) {
 }
 
 func ListGroups(c *gin.Context) {
-	name := c.DefaultQuery("name", "")
-
-	f := services.Filter{
-		Search: struct{ Name string }{
-			Name: name,
-		},
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
 	}
 
-	fmt.Println(f)
-
-	groups, err := services.ListGroups()
+	groups, totalGroups, err := services.ListGroups(*limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
 		return
 	}
 
-	var message string
-
-	if len(groups) == 0 {
-		message = "No groups"
-	}
-
-	if len(groups) > 0 {
-		message = "Groups retrieved successfully"
-	}
-
-	response.Success(c, http.StatusOK, message, groups)
+	response.Success(c, http.StatusOK, "Groups retrieved successfully", map[string]interface{}{
+		"groups":       groups,
+		"total_groups": totalGroups,
+	})
 }
 
 // GetUserGroups returns all group this user belongs to
 func GetUserGroups(c *gin.Context) {
-
 	rawUser, exists := c.Get("user")
-
 	if !exists {
 		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
 		return
 	}
-	user, ok := rawUser.(*models.User)
 
+	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusConflict, "error: invalid user type in context")
 		return
 	}
 
-	userGroups, code, err := services.GetGroupsByUserId(user.Id)
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
 	if err != nil {
-		response.Error(c, code, err.Error())
+		response.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	response.Success(c, code, "Fetched all user groups", userGroups)
+
+	userGroups, totalUserGroups, err := services.GetGroupsByUserId(user.Id, *limit, *offset)
+	if err != nil {
+		response.Error(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Fetched all user groups", map[string]interface{}{
+		"user_groups":       userGroups,
+		"total_user_groups": totalUserGroups,
+	})
 }
 
 func GetGroupById(c *gin.Context) {

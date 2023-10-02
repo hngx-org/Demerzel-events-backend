@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/pkg/types"
 	"demerzel-events/services"
@@ -60,14 +61,23 @@ func GetUserById(c *gin.Context) {
 }
 
 func GetUsers(c *gin.Context) {
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	users, err := services.GetUsers()
+	users, totalUsers, err := services.GetUsers(*limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "An error occurred while retrieving users")
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{"user": users})
+	response.Success(c, http.StatusOK, "Users Retrieved Successfully", map[string]any{
+		"user":        users,
+		"total_users": totalUsers,
+	})
 }
 
 func GetCurrentUser(c *gin.Context) {

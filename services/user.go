@@ -59,14 +59,16 @@ func UpdateUserById(user *models.User, data types.UserUpdatables) error {
 	return nil
 }
 
-func GetUsers() ([]models.User,error){
+func GetUsers(limit int, offset int) ([]models.User, *int64, error) {
 	var users []models.User
-	result := db.DB.Find(&users)
+	var totalUsers int64
+
+	result := db.DB.Offset(offset).Limit(limit).Find(&users)
 	if result.Error != nil {
-		
-		return nil, result.Error // Return the actual error for other errors
+		return nil, nil, result.Error // Return the actual error for other errors
 	}
 
-	return users, nil
-	
+	db.DB.Model(&models.User{}).Count(&totalUsers)
+
+	return users, &totalUsers, nil
 }
