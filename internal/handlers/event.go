@@ -1,42 +1,34 @@
 package handlers
 
 import (
-	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/helpers"
 	"demerzel-events/pkg/response"
 	"demerzel-events/services"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"math"
 	"net/http"
 	"reflect"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetGroupEventsHandler(c *gin.Context) {
 
 	id := c.Param("id")
 
-	group := models.Group{
-		ID: id,
-	}
-
-	events, err := group.GetGroupEvents(db.DB)
+	events, err := services.GetGroupEvents(id)
 
 	if err != nil {
 		response.Error(c, 500, "Can't process your request")
 		return
 	}
 
-	response.Success(c, 200, "List of events", map[string]interface{}{"events": events})
+	response.Success(c, 200, "List of events", map[string]interface{}{"group": events})
 }
 
 func CreateEventHandler(c *gin.Context) {
 	var input models.NewEvent
-
-	// Error if JSON request is invalid
-	if err := c.ShouldBindJSON(&input); err != nil {
-		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
-		return
-	}
 
 	rawUser, exists := c.Get("user")
 	if !exists {
@@ -47,6 +39,12 @@ func CreateEventHandler(c *gin.Context) {
 	user, ok := rawUser.(*models.User)
 	if !ok {
 		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	// Error if JSON request is invalid
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Unable to parse payload: %s", err.Error()))
 		return
 	}
 
@@ -124,7 +122,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !models.IsValidDate(input.StartDate) {
+	if !helpers.IsValidDate(input.StartDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid StartDate. Should follow format 2023-09-21")
 		return
 	}
@@ -139,7 +137,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	if !models.IsValidDate(input.EndDate) {
+	if !helpers.IsValidDate(input.EndDate) {
 		response.Error(c, http.StatusBadRequest, "Invalid EndDate. Should follow format 2023-09-21")
 		return
 	}
@@ -149,14 +147,30 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	createdEvent, err := models.CreateEvent(db.DB, &input)
+	createdEvent, code, err := services.CreateEvent(&input)
 
 	if err != nil {
-		response.Error(c, http.StatusBadRequest, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
+	sb, _, err := services.SubscribeUserToEvent(user.Id, createdEvent.Id)
+
+	fmt.Println(sb)
+
+	if err != nil {
+		response.Success(c, http.StatusCreated, "Event Created but fail to add user", map[string]interface{}{"event": createdEvent})
+		return
+	}
+
+	event, code, err := services.GetEventByID(createdEvent.Id)
+
+	if err != nil {
+		response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
+		return
+	}
+
+	response.Success(c, code, "Event Created", map[string]interface{}{"event": event})
 
 }
 
@@ -168,97 +182,73 @@ func GetEventHandler(c *gin.Context) {
 		return
 	}
 
-	event, err := models.GetEventByID(db.DB, eventID)
+	event, code, err := services.GetEventByID(eventID)
 
 	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
 
 	response.Success(c, http.StatusOK, "Event details fetched", map[string]interface{}{"event": event})
 }
 
-func JoinEventHandler(c *gin.Context) {
-	eventID := c.Param("event_id")
-
-	if eventID == "" {
-		response.Error(c, http.StatusBadRequest, "Event ID is required")
-		return
-	}
-
-	_, err := models.GetEventByID(db.DB, eventID)
-	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
-		return
-	}
-
-	rawUser, exists := c.Get("user")
-	if !exists {
-		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
-		return
-	}
-
-	user, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
-		return
-	}
-
-	event, err := models.AttachUserToEvent(db.DB, user.Id, eventID)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Unable to join event:"+err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "Joined Event", map[string]*models.Event{"event": event})
-}
-
-func LeaveEventHandler(c *gin.Context) {
-	eventID := c.Param("event_id")
-
-	if eventID == "" {
-		response.Error(c, http.StatusBadRequest, "Event ID is required")
-		return
-	}
-
-	_, err := models.GetEventByID(db.DB, eventID)
-	if err != nil {
-		response.Error(c, http.StatusNotFound, err.Error())
-		return
-	}
-
-	rawUser, exists := c.Get("user")
-	if !exists {
-		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
-		return
-	}
-
-	user, ok := rawUser.(*models.User)
-	if !ok {
-		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
-		return
-	}
-
-	event, err := models.DetachUserFromEvent(db.DB, user.Id, eventID)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Unable to leave event:"+err.Error())
-		return
-	}
-
-	response.Success(c, http.StatusOK, "Removed from Event", map[string]*models.Event{"event": event})
-
-}
-
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
 	startDate := c.Query("start_date")
-	events, err := models.ListEvents(db.DB, startDate)
+
+	// Extract query parameters for pagination
+	limit, offset, err := helpers.GetLimitAndOffset(c)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	events, totalEvents, code, err := services.ListEvents(startDate, *limit, *offset)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{
+		"events":       events,
+		"total_events": *totalEvents,
+	})
+}
+
+func ListUpcomingEventsHandler(c *gin.Context) {
+	events, err := services.ListUpcomingEvents()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	response.Success(c, http.StatusOK, "Events retrieved successfully", map[string]interface{}{"events": events})
+}
+
+func DeleteEventHandler(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	eventId := c.Param("event_id")
+
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	code, err := services.DeleteEvent(eventId, user.Id)
+
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
+
+	response.Success(c, code, "Event deleted successfully", nil)
 }
 
 func ListFriendsEventsHandler(c *gin.Context) {
@@ -274,7 +264,7 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		return
 	}
 
-	userGroups, _, err := services.GetGroupsByUserId(user.Id)
+	userGroups, _, err := services.GetGroupsByUserId(user.Id, math.MaxInt64, 1) // A hack for now, not that I woulxh home and start fighting
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to get groups which user belongs to:"+err.Error())
@@ -293,16 +283,14 @@ func ListFriendsEventsHandler(c *gin.Context) {
 		userGroupIds = append(userGroupIds, group.ID)
 	}
 
-	events, err := models.ListEventsInGroups(db.DB, userGroupIds)
+	events, code, err := services.ListEventsInGroups(userGroupIds)
 
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Unable to get events: "+err.Error())
+		response.Error(c, code, "Unable to get events: "+err.Error())
 		return
 	}
 
 	response.Success(c, http.StatusOK, "Events", map[string]interface{}{"events": events})
-
-	return
 }
 
 func SubscribeUserToEvent(c *gin.Context) {
@@ -321,9 +309,9 @@ func SubscribeUserToEvent(c *gin.Context) {
 		return
 	}
 
-	event, err := models.GetEventByID(db.DB, eventID)
+	event, code, err := services.GetEventByID(eventID)
 	if event == nil {
-		response.Error(c, http.StatusNotFound, "Event does not exist")
+		response.Error(c, code, err.Error())
 		return
 	}
 
@@ -332,11 +320,13 @@ func SubscribeUserToEvent(c *gin.Context) {
 		return
 	}
 
-	_, err = models.SubscribeUserToEvent(db.DB, user.Id, eventID)
+	_, code, err = services.SubscribeUserToEvent(user.Id, eventID)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
+
+	services.NotifyEventCreatorOnUserSubscription(event.CreatorId, event.Title, user.Name)
 
 	response.Success(c, http.StatusOK, "User successfully subscribed to event", nil)
 }
@@ -355,9 +345,9 @@ func UnsubscribeFromEvent(c *gin.Context) {
 		return
 	}
 
-	event, err := models.GetEventByID(db.DB, eventID)
+	event, code, err := services.GetEventByID(eventID)
 	if event == nil {
-		response.Error(c, http.StatusNotFound, "Event does not exist")
+		response.Error(c, code, "Event does not exist")
 		return
 	}
 
@@ -366,11 +356,13 @@ func UnsubscribeFromEvent(c *gin.Context) {
 		return
 	}
 
-	err = models.UnsubscribeUserFromEvent(db.DB, user.Id, eventID)
+	code, err = services.UnsubscribeUserFromEvent(user.Id, eventID)
 	if err != nil {
-		response.Error(c, http.StatusConflict, err.Error())
+		response.Error(c, code, err.Error())
 		return
 	}
+
+	services.NotifyEventCreatorOnUserUnSubscription(event.CreatorId, event.Title, user.Name)
 
 	response.Success(c, http.StatusOK, "User successfully unsubscribed to event", nil)
 }
@@ -387,9 +379,9 @@ func GetUserEventSubscriptions(c *gin.Context) {
 		return
 	}
 
-	events, err := models.GetUserEventSubscriptions(db.DB, user.Id)
+	events, err := services.GetUserEventSubscriptions(user.Id)
 	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 

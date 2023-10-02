@@ -3,6 +3,7 @@ package services
 import (
 	"demerzel-events/internal/db"
 	"demerzel-events/internal/models"
+	"demerzel-events/pkg/types"
 	"errors"
 	"fmt"
 	"net/http"
@@ -67,110 +68,156 @@ func DeleteUserGroup(userID, groupID string) error {
 	return result.Error
 }
 
-func UpdateGroupService(
-	tx *gorm.DB,
-	req models.UpdateGroupRequest,
-	id string,
-) (int, models.Group, error) {
-	group := models.Group{
-		ID: id,
-	}
+func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group, int, error) {
 
-	err := group.GetGroupByID(tx)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return http.StatusNotFound, group, fmt.Errorf(
-				"group with the specified id does not exist",
-			)
+	group := &models.Group{}
+
+	result := db.DB.Where("id = ?", id).First(&group)
+
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, http.StatusNotFound, fmt.Errorf("group doesn't exist")
 		}
-		return http.StatusBadRequest, group, err
+		return nil, http.StatusInternalServerError, result.Error
 	}
 
-	// check if a `name` was passed in the request body
-	if req.Name != "" {
-		group.Name = req.Name
+	group.Name = data.Name
+
+	result = db.DB.Save(&group)
+
+	if result.Error != nil {
+		return nil, http.StatusInternalServerError, result.Error
 	}
 
-	// update group id
-	err = group.UpdateGroupByID(tx)
-	if err != nil {
-		return http.StatusInternalServerError, group, err
-	}
-
-	return http.StatusOK, group, nil
+	return group, http.StatusOK, nil
 }
 
-// query filter struct
-type Filter struct {
-	Search struct {
-		Name string
-	}
-}
+func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
+	var groupDetailsList []types.GroupDetailResponse
+	var totalGroups int64
 
-// get groups
-func ListGroups(f Filter) ([]models.Group, error) {
-	var err error
-	groups := make([]models.Group, 0)
+	query := `
+        SELECT 
+            g.id AS id,
+            g.name AS name,
+            g.image AS image,
+			g.created_at AS created_at,
+			g.updated_at AS updated_at,
+            COUNT(DISTINCT ge.id) AS events_count,
+            COUNT(DISTINCT ug.id) AS members_count
+        FROM
+            groups g
+        LEFT JOIN group_events ge ON g.id = ge.group_id
+        LEFT JOIN user_groups ug ON g.id = ug.group_id
+        GROUP BY g.id
+    `
 
-	args := []any{"%", f.Search.Name, "%"}
-
-	if f.Search.Name != "" {
-		result := db.DB.Where("name LIKE ?", fmt.Sprintf("%s%s%s", args...)).Preload("Events").Find(&groups)
-		err = result.Error
-	}
-
-	if f.Search.Name == "" {
-		result := db.DB.Preload("Events").Find(&groups)
-		err = result.Error
-	}
+	dbQuery := db.DB.Raw(query)
+	err := dbQuery.Model(&models.Group{}).Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {
-		return make([]models.Group, 0), err
+		return nil, nil, err
 	}
 
-	return groups, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	return groupDetailsList, &totalGroups, nil
 }
 
-func GetGroupsByUserId(userId string) ([]models.Group, int, error) {
-	if _, err := GetUserById(userId); err != nil {
-		return nil, http.StatusNotFound, err
-	}
+func GetGroupsByUserId(userId string, limit int, offset int) ([]models.Group, *int64, error) {
 	var groups []models.Group
-	res := db.DB.
+	var totalGroups int64
+
+	dbQuery := db.DB.
 		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
-		Where("user_groups.user_id = ?", userId).
-		Preload("Events").Find(&groups)
+		Where("user_groups.user_id = ?", userId)
+
+	res := dbQuery.Preload("Events").
+		Offset(offset).Limit(limit).Find(&groups)
 
 	if res.Error != nil {
-		return nil, http.StatusNotFound, res.Error
+		return nil, nil, res.Error
 	}
 
-	return groups, http.StatusOK, nil
+	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	return groups, &totalGroups, nil
 }
 
-func DeleteGroup(tx *gorm.DB, id string) error {
-	// Delete group with specified id.
-	db := tx.Delete(&models.Group{}, "id = ?", id)
-	if db.Error != nil {
-		return db.Error
-	} else if db.RowsAffected < 1 {
-		return fmt.Errorf("group with id=%s doesn't exist", id)
+func DeleteGroup(id string) (int, error) {
+
+	group, err := GetGroupById(id)
+
+	if err != nil {
+		return http.StatusBadRequest, err
 	}
 
-	return nil
+	err = db.DB.Delete(&group).Error
+
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+
 }
 
 func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
 
-	result := db.DB.Where("id = ?", id).Preload("Members.User").Preload("Events").First(&group)
+	result := db.DB.Where("id = ?", id).Preload("Events").Preload("Members.User").First(&group)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("Group doesn't exist")
+			return nil, fmt.Errorf("group doesn't exist")
 		}
 		return nil, result.Error // Return the actual error for other errors
 	}
 
 	return &group, nil
+}
+
+func GetGroupEvents(id string) (*models.Group, error) {
+	var group models.Group
+	fmt.Printf("group id %s", id)
+
+	result := db.DB.Where("id = ?", id).Preload("Events", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at desc").Limit(3)
+		})
+	}).Preload("Members.User").First(&group)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("group doesn't exist")
+		}
+		return nil, result.Error // Return the actual error for other errors
+	}
+
+	return &group, nil
+}
+
+func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
+	var groupDetails types.GroupDetailResponse
+	var group models.Group
+
+	err := db.DB.Model(&models.Group{}).Where("id = ?", id).First(&group).Error
+
+	if err != nil {
+		return nil, http.StatusNotFound, err
+	}
+
+	var eventCount int64
+	var memberCount int64
+
+	db.DB.Model(&models.GroupEvent{}).Where("group_id = ?", id).Count(&eventCount)
+	db.DB.Model(&models.UserGroup{}).Where("group_id = ?", id).Count(&memberCount)
+
+	groupDetails.Name = group.Name
+	groupDetails.Image = group.Image
+	groupDetails.ID = group.ID
+	groupDetails.CreatedAt = group.CreatedAt
+	groupDetails.UpdatedAt = group.UpdatedAt
+	groupDetails.EventsCount = eventCount
+	groupDetails.MembersCount = memberCount
+
+	return &groupDetails, http.StatusOK, nil
+
 }
