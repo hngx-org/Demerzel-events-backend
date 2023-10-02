@@ -379,9 +379,9 @@ func GetUserEventSubscriptions(c *gin.Context) {
 		return
 	}
 
-	events, code, err := services.GetUserEventSubscriptions(user.Id)
+	events, err := services.GetUserEventSubscriptions(user.Id)
 	if err != nil {
-		response.Error(c, code, err.Error())
+		response.Error(c, http.StatusNotFound, err.Error())
 		return
 	}
 

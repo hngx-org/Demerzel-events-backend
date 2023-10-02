@@ -85,8 +85,6 @@ func UpdateGroup(c *gin.Context) {
 }
 
 func ListGroups(c *gin.Context) {
-	name := c.DefaultQuery("name", "")
-
 	// Extract query parameters for pagination
 	limit, offset, err := helpers.GetLimitAndOffset(c)
 	if err != nil {
@@ -94,7 +92,7 @@ func ListGroups(c *gin.Context) {
 		return
 	}
 
-	groups, totalGroups, err := services.ListGroups(name, *limit, *offset)
+	groups, totalGroups, err := services.ListGroups(*limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
 		return

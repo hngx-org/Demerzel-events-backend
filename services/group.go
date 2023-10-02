@@ -92,29 +92,27 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-func ListGroups(name string, limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
+func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
 	var groupDetailsList []types.GroupDetailResponse
 	var totalGroups int64
 
 	query := `
-			SELECT
-				g.id AS id,
-				g.name AS name,
-				g.image AS image,
-				g.created_at AS created_at,
-				g.updated_at AS updated_at,
-				COUNT(DISTINCT ge.id) AS events_count,
-				COUNT(DISTINCT ug.id) AS members_count
-			FROM
-				groups AS g
-				LEFT JOIN group_events AS ge ON g.id = ge.group_id
-				LEFT JOIN user_groups AS ug ON g.id = ug.group_id
-			WHERE
-				g.name LIKE ?
-			GROUP BY g.id
+        SELECT 
+            g.id AS id,
+            g.name AS name,
+            g.image AS image,
+			g.created_at AS created_at,
+			g.updated_at AS updated_at,
+            COUNT(DISTINCT ge.id) AS events_count,
+            COUNT(DISTINCT ug.id) AS members_count
+        FROM
+            groups g
+        LEFT JOIN group_events ge ON g.id = ge.group_id
+        LEFT JOIN user_groups ug ON g.id = ug.group_id
+        GROUP BY g.id
     `
-	nameParams := fmt.Sprintf("%s%s%s", "%", name, "%")
-	dbQuery := db.DB.Raw(query, nameParams)
+
+	dbQuery := db.DB.Raw(query)
 	err := dbQuery.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {

@@ -194,12 +194,12 @@ func UnsubscribeUserFromEvent(userID, eventID string) (int, error) {
 	return http.StatusInternalServerError, result.Error
 }
 
-func GetUserEventSubscriptions(userID string) (*[]models.Event, int, error) {
+func GetUserEventSubscriptions(userID string) (*[]models.Event, error) {
 	var user models.User
 	result := db.DB.Where("id = ?", userID).Preload("InterestedEvents").First(&user)
 	if result.Error != nil {
-		return nil, http.StatusNotFound, result.Error
+		return nil, result.Error
 	}
 
-	return &user.InterestedEvents, http.StatusOK, nil
+	return &user.InterestedEvents, nil
 }
