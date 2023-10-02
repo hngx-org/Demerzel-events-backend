@@ -113,7 +113,7 @@ func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, err
     `
 
 	dbQuery := db.DB.Raw(query)
-	err := dbQuery.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
+	err := dbQuery.Model(&models.Group{}).Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {
 		return nil, nil, err
