@@ -63,6 +63,7 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/events/subscriptions", handlers.GetUserEventSubscriptions)
 	apiRoutes.POST("/events/:id/subscribe", handlers.SubscribeUserToEvent)
 	apiRoutes.POST("/events/:id/unsubscribe", handlers.UnsubscribeFromEvent)
+	apiRoutes.GET("/events/:event_id/attendees", handlers.GetEventAttendees)
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
 	apiRoutes.DELETE("/events/:event_id", handlers.DeleteEventHandler)
 	// Get events in group returns bad data.
@@ -71,7 +72,6 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/comments", handlers.CreateComment)
 	apiRoutes.PUT("/comments/:comment_id", handlers.UpdateComments)
 	apiRoutes.DELETE("/comments/:comment_id", handlers.DeleteComment)
-
 
 	// Notification routes
 	apiRoutes.GET("/notifications/all", handlers.ListNotifications)
