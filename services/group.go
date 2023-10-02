@@ -96,24 +96,28 @@ func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, err
 	var groupDetailsList []types.GroupDetailResponse
 	var totalGroups int64
 
-	query := `
-        SELECT 
-            g.id AS id,
-            g.name AS name,
-            g.image AS image,
-			g.created_at AS created_at,
-			g.updated_at AS updated_at,
-            COUNT(DISTINCT ge.id) AS events_count,
-            COUNT(DISTINCT ug.id) AS members_count
-        FROM
-            groups g
-        LEFT JOIN group_events ge ON g.id = ge.group_id
-        LEFT JOIN user_groups ug ON g.id = ug.group_id
-        GROUP BY g.id
-    `
+	query1 := `
+       SELECT
+    g.id AS id,
+    g.name AS name,
+    g.image AS image,
+    g.created_at AS created_at,
+    g.updated_at AS updated_at,
+    COUNT(DISTINCT ge.id) AS events_count,
+    COUNT(DISTINCT ug.id) AS members_count `
+	query2 := "FROM `groups` g "
 
-	dbQuery := db.DB.Raw(query)
-	err := dbQuery.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
+	query3 := `LEFT JOIN group_events ge ON g.id = ge.group_id
+LEFT JOIN user_groups ug ON g.id = ug.group_id
+GROUP BY
+    g.id,
+    g.name,
+    g.image,
+    g.created_at,
+    g.updated_at`
+
+	dbQuery := db.DB.Raw(query1 + query2 + query3)
+	err := dbQuery.Model(&models.Group{}).Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {
 		return nil, nil, err
