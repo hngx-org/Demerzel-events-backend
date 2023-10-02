@@ -192,6 +192,28 @@ func GetEventHandler(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Event details fetched", map[string]interface{}{"event": event})
 }
 
+func GetEventAttendees(c *gin.Context) {
+	eventId := c.Param("event_id")
+
+	attendees, error := services.GetEventAttendees(eventId)
+	if error != nil {
+		code := http.StatusInternalServerError
+		message := error.Error()
+
+		if error.Error() == "record not found" {
+			code = http.StatusBadRequest
+			message = "Event does not exist"
+		}
+
+		response.Error(c, code, message)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Event attendees fetched succesfully", map[string]interface{}{
+		"attendees": attendees,
+	})
+}
+
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
 	startDate := c.Query("start_date")
