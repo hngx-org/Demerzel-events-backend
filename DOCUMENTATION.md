@@ -1,5 +1,6 @@
 # Team Demerzel Events API Documentation
 
+
 ## Table of Contents
 
 * [Introduction](#introduction)
