@@ -62,6 +62,64 @@ func CreateGroup(ctx *gin.Context) {
 	)
 }
 
+func SubscribeUserToGroup(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	groupId := c.Param("id")
+	group, err := services.GetGroupById(groupId)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	_, err = services.SubscribeUserToGroup(user.Id, group.ID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User subscribed to group successfully", nil)
+}
+
+func UnsubscribeUserFromGroup(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusInternalServerError, "Unable to read user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusInternalServerError, "Invalid context user type")
+		return
+	}
+
+	groupId := c.Param("id")
+	group, err := services.GetGroupById(groupId)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = services.UnsubscribeUserFromGroup(user.Id, group.ID)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User unsubscribed from group successfully", nil)
+}
+
 func UpdateGroup(c *gin.Context) {
 	req := models.UpdateGroupRequest{}
 	id := c.Param("id")

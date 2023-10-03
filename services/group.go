@@ -53,7 +53,7 @@ func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
 	return nil, fmt.Errorf("user already subscribed to group")
 }
 
-func DeleteUserGroup(userID, groupID string) error {
+func UnsubscribeUserFromGroup(userID string, groupID string) error {
 	var userGroup models.UserGroup
 	result := db.DB.Where("group_id = ?", groupID).Where("user_id = ?", userID).First(&userGroup)
 	if result.Error != nil {

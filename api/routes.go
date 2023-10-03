@@ -45,6 +45,8 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/groups/:id", handlers.UpdateGroup)
 	apiRoutes.GET("/groups/:id", handlers.GetGroupById)
 	apiRoutes.DELETE("/groups/:id", handlers.DeleteGroup)
+	apiRoutes.POST("/groups/:id/subscribe", handlers.SubscribeUserToGroup)
+	apiRoutes.POST("/groups/:id/unsubscribe", handlers.UnsubscribeUserFromGroup)
 
 	// User routes
 	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
@@ -66,7 +68,10 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/events/:event_id/attendees", handlers.GetEventAttendees)
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
 	apiRoutes.DELETE("/events/:event_id", handlers.DeleteEventHandler)
-	// Get events in group returns bad data.
+
+	apiRoutes.POST("/events/:id/reactions", handlers.ToggleEventReaction)
+	apiRoutes.GET("/events/:event_id/reactions", handlers.GetEventReactions)
+	apiRoutes.DELETE("/events/:event_id/reactions/:reaction_id", handlers.RemoveReaction)
 
 	// comment routes
 	apiRoutes.POST("/comments", handlers.CreateComment)
