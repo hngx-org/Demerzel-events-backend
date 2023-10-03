@@ -66,7 +66,10 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.GET("/events/:event_id/attendees", handlers.GetEventAttendees)
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
 	apiRoutes.DELETE("/events/:event_id", handlers.DeleteEventHandler)
-	// Get events in group returns bad data.
+
+	apiRoutes.POST("/events/:id/reactions", handlers.ToggleEventReaction)
+	apiRoutes.GET("/events/:event_id/reactions", handlers.GetEventReactions)
+	apiRoutes.DELETE("/events/:event_id/reactions/:reaction_id", handlers.RemoveReaction)
 
 	// comment routes
 	apiRoutes.POST("/comments", handlers.CreateComment)

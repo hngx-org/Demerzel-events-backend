@@ -13,6 +13,7 @@ func Migrate() error {
 		&models.Comment{},
 		&models.Notification{},
 		&models.UserNotification{},
+		&models.Reaction{},
 	)
 	return err
 }

@@ -3,8 +3,8 @@ package api
 import (
 	"demerzel-events/pkg/jwt"
 	"demerzel-events/pkg/response"
-	"github.com/gin-gonic/gin"
 	"demerzel-events/services"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
