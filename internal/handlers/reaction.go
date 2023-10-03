@@ -24,17 +24,17 @@ func ToggleEventReaction(c *gin.Context) {
 		return
 	}
 
+	reaction, err := services.GetReactionForEvent(user.Id, eventId, nil)
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	var requestBody struct {
 		Reaction string `json:"reaction"`
 	}
 	if err := c.ShouldBindJSON(&requestBody); err != nil {
 		response.Error(c, http.StatusBadRequest, "Invalid request body format")
-		return
-	}
-
-	reaction, err := services.GetReactionForEvent(user.Id, eventId, nil)
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
