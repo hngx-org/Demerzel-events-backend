@@ -10,7 +10,7 @@ import (
 )
 
 func ToggleEventReaction(c *gin.Context) {
-	eventId := c.Param("event_id")
+	eventId := c.Param("id")
 
 	rawUser, exists := c.Get("user")
 	if !exists {
