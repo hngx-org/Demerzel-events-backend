@@ -12,6 +12,39 @@ import (
 	"gorm.io/gorm"
 )
 
+func parseEventResponse(event models.Event) models.EventResponse {
+	// Doing this because we don't need to return the whole comments field here
+	// There has to be a cleaner and efficient way to do this
+	var evResponse models.EventResponse
+	evResponse.Id = event.Id
+	evResponse.CreatorId = event.CreatorId
+	evResponse.Thumbnail = event.Thumbnail
+	evResponse.Location = event.Location
+	evResponse.Title = event.Title
+	evResponse.Description = event.Description
+	evResponse.StartDate = event.StartDate
+	evResponse.EndDate = event.EndDate
+	evResponse.StartTime = event.StartTime
+	evResponse.EndTime = event.EndTime
+	evResponse.CreatedAt = event.CreatedAt
+	evResponse.UpdatedAt = event.UpdatedAt
+	evResponse.Creator = event.Creator
+	evResponse.Groups = event.Groups
+
+	customComments := []models.CommentCreator{}
+	for _, comment := range event.Comments {
+		var customComment models.CommentCreator
+		customComment.Avatar = comment.Creator.Avatar
+		customComment.Id = comment.Creator.Id
+		customComment.Name = comment.Creator.Name
+
+		customComments = append(customComments, customComment)
+	}
+
+	evResponse.Comments = customComments
+	return evResponse
+}
+
 func ListUpcomingEvents() ([]models.Event, error) {
 
 	var events []models.Event
@@ -51,19 +84,31 @@ func DeleteEvent(eventID string, userID string) (int, error) {
 	return http.StatusOK, nil
 }
 
-func GetEventByID(eventID string) (*models.Event, int, error) {
+func GetEventByID(eventID string) (*models.EventResponse, int, error) {
 	var event models.Event
 
-	err := db.DB.Where("id = ?", eventID).Preload("Creator").Preload("Attendees").Preload("Groups").First(&event).Error
+	err := db.DB.Model(&models.Event{}).
+		Where("id = ?", eventID).
+		Preload("Creator").
+		Preload("Attendees").
+		Preload("Groups").
+		Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Limit(3).Order("created_at desc").Preload("Creator")
+		}).
+		First(&event).Error
 
 	if err != nil {
 		return nil, http.StatusNotFound, err
 	}
 
-	return &event, http.StatusOK, nil
+	// Doing this because we don't need to return the whole comments field here
+	// There has to be a cleaner and efficient way to do this
+	evResponse := parseEventResponse(event)
+
+	return &evResponse, http.StatusOK, nil
 }
 
-func CreateEvent(event *models.NewEvent) (*models.Event, int, error) {
+func CreateEvent(event *models.NewEvent) (*models.EventResponse, int, error) {
 	createdEvent := models.Event{
 		CreatorId:   event.CreatorId,
 		Thumbnail:   event.Thumbnail,
@@ -115,7 +160,7 @@ func CreateGroupEvent(groupEvent *models.NewGroupEvent) (*models.GroupEvent, int
 }
 
 // ListEvents retrieves all events.
-func ListEvents(startDate string, limit int, offset int) ([]models.Event, *int64, int, error) {
+func ListEvents(startDate string, limit int, offset int) (*[]models.EventResponse, *int64, int, error) {
 	var events []models.Event
 	var totalEvents int64
 
@@ -124,15 +169,29 @@ func ListEvents(startDate string, limit int, offset int) ([]models.Event, *int64
 		query = query.Where(&models.Event{StartDate: startDate})
 	}
 
-	err := query.Order("start_date, start_time").Preload("Creator").Preload("Attendees").Preload("Groups").
+	err := query.
+		Order("start_date, start_time").
+		Preload("Creator").
+		Preload("Attendees").
+		Preload("Groups").
+		Preload("Comments", func(db *gorm.DB) *gorm.DB {
+			return db.Limit(3).Order("created_at desc").Preload("Creator")
+		}).
 		Offset(offset).Limit(limit).Find(&events).Error
+
+	var eventsResponse []models.EventResponse
+	for _, event := range events {
+		parsedEvent := parseEventResponse(event)
+		eventsResponse = append(eventsResponse, parsedEvent)
+	}
 
 	if err != nil {
 		return nil, nil, http.StatusInternalServerError, err
 	}
 
 	query.Model(&models.Event{}).Count(&totalEvents)
-	return events, &totalEvents, http.StatusOK, nil
+
+	return &eventsResponse, &totalEvents, http.StatusOK, nil
 }
 
 func ListEventsInGroups(groupIDs []string) ([]models.Event, int, error) {

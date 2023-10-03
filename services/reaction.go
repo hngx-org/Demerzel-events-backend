@@ -5,6 +5,7 @@ import (
 	"demerzel-events/internal/models"
 	"errors"
 	"fmt"
+
 	"gorm.io/gorm"
 )
 
