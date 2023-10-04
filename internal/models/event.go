@@ -25,6 +25,25 @@ type NewGroupEvent struct {
 	GroupId string `json:"group_id"`
 }
 
+type EventResponse struct {
+	Id          string           `json:"id"`
+	CreatorId   string           `json:"creator_id"`
+	Thumbnail   string           `json:"thumbnail"`
+	Location    string           `json:"location"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	StartDate   string           `json:"start_date"`
+	EndDate     string           `json:"end_date"`
+	StartTime   string           `json:"start_time"`
+	EndTime     string           `json:"end_time"`
+	CreatedAt   time.Time        `json:"created_at"`
+	UpdatedAt   time.Time        `json:"updated_at"`
+	Creator     *User            `json:"creator"`
+	Attendees   []User           `json:"attendees"`
+	Groups      []Group          `json:"groups"`
+	Comments    []CommentCreator `json:"comments"`
+}
+
 type Event struct {
 	Id          string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	CreatorId   string    `json:"creator_id" gorm:"type:varchar(255)"`
