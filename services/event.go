@@ -12,24 +12,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func parseEventResponse(event models.Event) models.EventResponse {
+func parseEventResponse(event *models.Event) models.EventResponse {
 	// Doing this because we don't need to return the whole comments field here
 	// There has to be a cleaner and efficient way to do this
 	var evResponse models.EventResponse
-	evResponse.Id = event.Id
-	evResponse.CreatorId = event.CreatorId
-	evResponse.Thumbnail = event.Thumbnail
-	evResponse.Location = event.Location
-	evResponse.Title = event.Title
-	evResponse.Description = event.Description
-	evResponse.StartDate = event.StartDate
-	evResponse.EndDate = event.EndDate
-	evResponse.StartTime = event.StartTime
-	evResponse.EndTime = event.EndTime
-	evResponse.CreatedAt = event.CreatedAt
-	evResponse.UpdatedAt = event.UpdatedAt
-	evResponse.Creator = event.Creator
-	evResponse.Groups = event.Groups
+	evResponse.Id = (*event).Id
+	evResponse.CreatorId = (*event).CreatorId
+	evResponse.Thumbnail = (*event).Thumbnail
+	evResponse.Location = (*event).Location
+	evResponse.Title = (*event).Title
+	evResponse.Description = (*event).Description
+	evResponse.StartDate = (*event).StartDate
+	evResponse.EndDate = (*event).EndDate
+	evResponse.StartTime = (*event).StartTime
+	evResponse.EndTime = (*event).EndTime
+	evResponse.CreatedAt = (*event).CreatedAt
+	evResponse.UpdatedAt = (*event).UpdatedAt
+	evResponse.Creator = (*event).Creator
+	evResponse.Groups = (*event).Groups
 
 	customComments := []models.CommentCreator{}
 	for _, comment := range event.Comments {
@@ -103,7 +103,7 @@ func GetEventByID(eventID string) (*models.EventResponse, int, error) {
 
 	// Doing this because we don't need to return the whole comments field here
 	// There has to be a cleaner and efficient way to do this
-	evResponse := parseEventResponse(event)
+	evResponse := parseEventResponse(&event)
 
 	return &evResponse, http.StatusOK, nil
 }
@@ -181,7 +181,7 @@ func ListEvents(startDate string, limit int, offset int) (*[]models.EventRespons
 
 	var eventsResponse []models.EventResponse
 	for _, event := range events {
-		parsedEvent := parseEventResponse(event)
+		parsedEvent := parseEventResponse(&event)
 		eventsResponse = append(eventsResponse, parsedEvent)
 	}
 
