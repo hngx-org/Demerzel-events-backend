@@ -50,8 +50,7 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// User routes
 	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
-	apiRoutes.GET("/users/:id", handlers.GetUserById)
-	apiRoutes.PUT("/users/:id", handlers.UpdateUser)
+	apiRoutes.PUT("/users/", handlers.UpdateUser)
 	apiRoutes.GET("/users", handlers.GetUsers)
 	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 

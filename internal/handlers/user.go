@@ -31,12 +31,12 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	err := services.UpdateUserById(user, updateData)
+	updatedUser, err := services.UpdateUserById(user, updateData)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "A server error occurred")
 		return
 	}
-	response.Success(c, http.StatusOK, "User updated successfully", nil)
+	response.Success(c, http.StatusOK, "User updated successfully", updatedUser)
 }
 
 func GetUserById(c *gin.Context) {

@@ -47,16 +47,16 @@ func CreateUser(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func UpdateUserById(user *models.User, data types.UserUpdatables) error {
+func UpdateUserById(user *models.User, data types.UserUpdatables)(*models.User, error ){
 	user.Name = data.Name
 	if data.Avatar != "" {
 		user.Avatar = data.Avatar
 	}
 
 	if err := db.DB.Save(user).Error; err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return user, nil
 }
 
 func GetUsers(limit int, offset int) ([]models.User, *int64, error) {
