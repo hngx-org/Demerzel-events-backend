@@ -11,6 +11,27 @@ import (
 	"gorm.io/gorm"
 )
 
+func parseGroupResponse(group *models.Group) models.GroupResponse {
+	// Doing this because we don't need to return the whole comments field in the events here
+	// There has to be a cleaner and efficient way to do this
+	var groupResponse models.GroupResponse
+	groupResponse.ID = (*group).ID
+	groupResponse.Name = (*group).Name
+	groupResponse.Image = (*group).Image
+	groupResponse.CreatedAt = (*group).CreatedAt
+	groupResponse.UpdatedAt = (*group).UpdatedAt
+	groupResponse.Members = (*group).Members
+
+	groupEvents := []models.EventResponse{}
+	for _, event := range (*group).Events {
+		singleEvent := parseEventResponse(&event)
+		groupEvents = append(groupEvents, singleEvent)
+	}
+
+	groupResponse.Events = groupEvents
+	return groupResponse
+}
+
 func CreateGroup(group *models.Group) (*models.Group, error) {
 	if err := db.DB.Create(group).Error; err != nil {
 		return nil, err
@@ -179,15 +200,20 @@ func GetGroupById(id string) (*models.Group, error) {
 	return &group, nil
 }
 
-func GetGroupEvents(id string) (*models.Group, error) {
+func GetGroupEvents(id string) (*models.GroupResponse, error) {
 	var group models.Group
 	fmt.Printf("group id %s", id)
 
-	result := db.DB.Where("id = ?", id).Preload("Events", func(db *gorm.DB) *gorm.DB {
-		return db.Preload("Comments", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at desc").Limit(3)
-		})
-	}).Preload("Members.User").First(&group)
+	result := db.DB.
+		Where("id = ?", id).
+		Preload("Events", func(db *gorm.DB) *gorm.DB {
+			return db.Preload("Comments", func(db *gorm.DB) *gorm.DB {
+				return db.Order("created_at desc").Preload(("Creator")).Limit(3)
+			})
+		}).
+		Preload("Members.User").
+		First(&group)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("group doesn't exist")
@@ -195,7 +221,8 @@ func GetGroupEvents(id string) (*models.Group, error) {
 		return nil, result.Error // Return the actual error for other errors
 	}
 
-	return &group, nil
+	groupResponse := parseGroupResponse(&group)
+	return &groupResponse, nil
 }
 
 func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
