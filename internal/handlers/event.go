@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"reflect"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -214,9 +215,24 @@ func GetEventAttendees(c *gin.Context) {
 	})
 }
 
+func parseGetEventsQueries(c *gin.Context) (string, string, int, int, int) {
+	startDate := c.Query("start_date")
+	title := c.Query("title")
+	dayOfWeek := c.Query("day_of_week")
+	month := c.Query("month")
+	weekNumber := c.Query("week_number")
+
+	// string to int
+	dayOfWeekInt, _ := strconv.Atoi(dayOfWeek)
+	monthInt, _ := strconv.Atoi(month)
+	weekNumberInt, _ := strconv.Atoi(weekNumber)
+
+	return startDate, title, dayOfWeekInt, monthInt, weekNumberInt
+}
+
 // ListEventsHandler lists all events
 func ListEventsHandler(c *gin.Context) {
-	startDate := c.Query("start_date")
+	startDate, title, dayOfWeek, month, weekNumber := parseGetEventsQueries(c)
 
 	// Extract query parameters for pagination
 	limit, offset, err := helpers.GetLimitAndOffset(c)
@@ -225,7 +241,9 @@ func ListEventsHandler(c *gin.Context) {
 		return
 	}
 
-	events, totalEvents, code, err := services.ListEvents(startDate, *limit, *offset)
+	events, totalEvents, code, err := services.
+		ListEvents(startDate, title, dayOfWeek, month, weekNumber, *limit, *offset)
+
 	if err != nil {
 		response.Error(c, code, err.Error())
 		return
