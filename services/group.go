@@ -92,38 +92,35 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-func ListGroups(limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
+func ListGroups(name string, limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
 	var groupDetailsList []types.GroupDetailResponse
 	var totalGroups int64
 
-	query1 := `
-       SELECT
-    g.id AS id,
-    g.name AS name,
-    g.image AS image,
-    g.created_at AS created_at,
-    g.updated_at AS updated_at,
-    COUNT(DISTINCT ge.id) AS events_count,
-    COUNT(DISTINCT ug.id) AS members_count `
-	query2 := "FROM `groups` g "
+	query := db.DB.Model(&models.Group{})
+	if name != "" {
+		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
 
-	query3 := `LEFT JOIN group_events ge ON g.id = ge.group_id
-LEFT JOIN user_groups ug ON g.id = ug.group_id
-GROUP BY
-    g.id,
-    g.name,
-    g.image,
-    g.created_at,
-    g.updated_at`
+	query = query.Select(`
+		groups.id AS id,
+		groups.name AS name,
+		groups.image AS image,
+		groups.created_at AS created_at,
+		groups.updated_at AS updated_at,
+		COUNT(DISTINCT group_events.id) AS events_count,
+		COUNT(DISTINCT user_groups.id) AS members_count
+	`).
+		Joins("LEFT JOIN group_events ON groups.id = group_events.group_id").
+		Joins("LEFT JOIN user_groups ON groups.id = user_groups.group_id").
+		Group("groups.id, groups.name, groups.image, groups.created_at, groups.updated_at")
 
-	dbQuery := db.DB.Raw(query1 + query2 + query3)
-	err := dbQuery.Model(&models.Group{}).Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
+	err := query.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
 
 	if err != nil {
 		return nil, nil, err
 	}
 
-	dbQuery.Model(&models.Group{}).Count(&totalGroups)
+	query.Count(&totalGroups)
 	return groupDetailsList, &totalGroups, nil
 }
 

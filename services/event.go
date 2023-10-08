@@ -160,13 +160,34 @@ func CreateGroupEvent(groupEvent *models.NewGroupEvent) (*models.GroupEvent, int
 }
 
 // ListEvents retrieves all events.
-func ListEvents(startDate string, limit int, offset int) (*[]models.EventResponse, *int64, int, error) {
+func ListEvents(startDate string, title string, dayOfWeek int, month int, weekNumber int, limit int, offset int) (*[]models.EventResponse, *int64, int, error) {
 	var events []models.Event
 	var totalEvents int64
 
 	query := db.DB
 	if startDate != "" && helpers.IsValidDate(startDate) {
 		query = query.Where(&models.Event{StartDate: startDate})
+	}
+
+	// Filter by search query (event title)
+	if title != "" {
+		query = query.Where("title LIKE ?", "%"+title+"%")
+	}
+
+	// Filter by day of the week (1 - 6 = Monday - Sunday)
+	if dayOfWeek >= 1 && dayOfWeek <= 7 {
+		fmt.Println("\nHHH", dayOfWeek)
+		query = query.Where("DAYOFWEEK(start_date) = ?", dayOfWeek)
+	}
+
+	// Filter by month (1 - 12 = January - December)
+	if month >= 1 && month <= 12 {
+		query = query.Where("MONTH(start_date) = ?", month)
+	}
+
+	// Filter by week number - (There are 52 or 53 weeks in a year)
+	if weekNumber >= 1 && weekNumber <= 53 {
+		query = query.Where("WEEK(start_date) = ?", weekNumber)
 	}
 
 	err := query.
@@ -190,6 +211,10 @@ func ListEvents(startDate string, limit int, offset int) (*[]models.EventRespons
 	}
 
 	query.Model(&models.Event{}).Count(&totalEvents)
+
+	if eventsResponse == nil {
+		eventsResponse = []models.EventResponse{}
+	}
 
 	return &eventsResponse, &totalEvents, http.StatusOK, nil
 }
