@@ -17,6 +17,16 @@ type Group struct {
 	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
 }
 
+type GroupResponse struct {
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
+	Image     string          `json:"image"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+	Members   []UserGroup     `json:"members"`
+	Events    []EventResponse `json:"events"`
+}
+
 type UserGroup struct {
 	ID        string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	UserID    string    `json:"user_id" gorm:"type:varchar(255)"`
@@ -42,4 +52,3 @@ func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 
 	return nil
 }
-

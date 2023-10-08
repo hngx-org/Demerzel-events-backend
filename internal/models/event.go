@@ -38,10 +38,10 @@ type EventResponse struct {
 	EndTime     string           `json:"end_time"`
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
-	Creator     *User            `json:"creator"`
-	Attendees   []User           `json:"attendees"`
-	Groups      []Group          `json:"groups"`
-	Comments    []CommentCreator `json:"comments"`
+	Creator     *User            `json:"creator,omitempty"`
+	Attendees   []User           `json:"attendees,omitempty"`
+	Groups      []Group          `json:"groups,omitempty"`
+	Comments    []CommentCreator `json:"comments,omitempty"`
 }
 
 type Event struct {
