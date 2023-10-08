@@ -10,7 +10,6 @@ type User struct {
 	Name   string `gorm:"column:name" json:"name"`
 	Email  string `gorm:"column:email;unique" json:"email"`
 	Avatar string `gorm:"column:avatar" json:"avatar"`
-
 	Events           []Event     `json:"-" gorm:"foreignKey:CreatorId"`
 	Reactions        []Reaction  `json:"-" gorm:"foreignKey:UserId"`
 	InterestedEvents []Event     `json:"-" gorm:"many2many:interested_events;"`

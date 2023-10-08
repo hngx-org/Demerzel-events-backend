@@ -170,6 +170,8 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
+	services.SendNewEventNotificationToAllEventNotificationEnabledUsers(event.Title, user.Name, user.Id)
+
 	response.Success(c, code, "Event Created", map[string]interface{}{"event": event})
 
 }

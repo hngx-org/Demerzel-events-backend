@@ -52,7 +52,7 @@ func CreateGroup(ctx *gin.Context) {
 	}
 
 	services.SubscribeUserToGroup(user.Id, group.ID)
-	services.SendNewGroupNotificationToAllUsers(newGroup.Name, user.Name, user.Id)
+	services.SendNewGroupNotificationToAllGroupNotificationEnabledUsers(newGroup.Name, user.Name, user.Id)
 
 	response.Success(
 		ctx,
