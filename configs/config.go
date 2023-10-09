@@ -2,7 +2,10 @@ package configs
 
 import (
 	"demerzel-events/dependencies/firebase"
+	"demerzel-events/dependencies/mailersend"
+	"demerzel-events/dependencies/mailgun"
 	"demerzel-events/internal/db"
+	"demerzel-events/pkg/smtp"
 	"fmt"
 	"github.com/joho/godotenv"
 )
@@ -19,4 +22,13 @@ func Load() {
 
 	// Initialize firebase
 	firebase.Initialize()
+
+	// Initialize mailgun
+	mailgun.Initialize()
+
+	// Initialize smtp
+	smtp.Initialize()
+
+	// Initialize mailersend
+	mailersend.Initialize()
 }

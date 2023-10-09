@@ -35,3 +35,19 @@ func (uN *UserNotification) BeforeCreate(tx *gorm.DB) error {
 
 	return nil
 }
+
+type NotificationSetting struct {
+	ID       string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	UserID   string `json:"user_id" gorm:"type:varchar(255)"`
+	User     User   `json:"user" gorm:"foreignKey:UserID;association_foreignkey:ID"`
+	Email    bool   `json:"email" gorm:"default:true"`
+	Event    bool   `json:"event" gorm:"default:true"`
+	Group    bool   `json:"group" gorm:"default:true"`
+	Reminder bool   `json:"reminder" gorm:"default:true"`
+}
+
+func (nS *NotificationSetting) BeforeCreate(tx *gorm.DB) error {
+	nS.ID = uuid.NewString()
+
+	return nil
+}

@@ -155,9 +155,7 @@ func CreateEventHandler(c *gin.Context) {
 		return
 	}
 
-	sb, _, err := services.SubscribeUserToEvent(user.Id, createdEvent.Id)
-
-	fmt.Println(sb)
+	_, _, err = services.SubscribeUserToEvent(user.Id, createdEvent.Id)
 
 	if err != nil {
 		response.Success(c, http.StatusCreated, "Event Created but fail to add user", map[string]interface{}{"event": createdEvent})
@@ -170,6 +168,8 @@ func CreateEventHandler(c *gin.Context) {
 		response.Success(c, http.StatusCreated, "Event Created", map[string]interface{}{"event": createdEvent})
 		return
 	}
+
+	services.SendNewEventNotificationToAllEventNotificationEnabledUsers(event.Title, user.Name, user.Id)
 
 	response.Success(c, code, "Event Created", map[string]interface{}{"event": event})
 
@@ -367,7 +367,15 @@ func SubscribeUserToEvent(c *gin.Context) {
 	}
 
 	services.NotifyEventCreatorOnUserSubscription(event.CreatorId, event.Title, user.Name)
+	notif, code, err := services.GetNotificationSettingByUserID(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
 
+	if notif.Email {
+		services.SendEventSubscriptionEmail(user, event)
+	}
 	response.Success(c, http.StatusOK, "User successfully subscribed to event", nil)
 }
 
@@ -403,7 +411,15 @@ func UnsubscribeFromEvent(c *gin.Context) {
 	}
 
 	services.NotifyEventCreatorOnUserUnSubscription(event.CreatorId, event.Title, user.Name)
+	notif, code, err := services.GetNotificationSettingByUserID(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
 
+	if notif.Email {
+		services.SendEventUnsubscriptionEmail(user, event)
+	}
 	response.Success(c, http.StatusOK, "User successfully unsubscribed to event", nil)
 }
 
