@@ -14,6 +14,7 @@ func GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 
 	result := db.DB.Where("email = ?", email).First(&user)
+
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil // Return nil when the user is not found
@@ -44,10 +45,12 @@ func CreateUser(user *models.User) (*models.User, error) {
 		return nil, err
 	}
 
+	CreateNotificationSetting(user.Id)
+
 	return user, nil
 }
 
-func UpdateUserById(user *models.User, data types.UserUpdatables)(*models.User, error ){
+func UpdateUserById(user *models.User, data types.UserUpdatables) (*models.User, error) {
 	user.Name = data.Name
 	if data.Avatar != "" {
 		user.Avatar = data.Avatar
