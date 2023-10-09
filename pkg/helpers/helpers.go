@@ -34,3 +34,14 @@ func IsValidDate(date string) bool {
 
 	return err == nil
 }
+
+func FormatDateTimeStr(dateStr string, timeStr string) (string, error) {
+	dateTimeStr := dateStr + " " + timeStr
+
+	dateTime, err := time.Parse("2006-01-02 15:04", dateTimeStr)
+	if err != nil {
+		return "", err
+	}
+
+	return dateTime.Format("20060102T150405"), nil
+}
