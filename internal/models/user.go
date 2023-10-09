@@ -6,15 +6,16 @@ import (
 )
 
 type User struct {
-	Id     string `gorm:"primaryKey;type:varchar(255)" json:"id"`
-	Name   string `gorm:"column:name" json:"name"`
-	Email  string `gorm:"column:email;unique" json:"email"`
-	Avatar string `gorm:"column:avatar" json:"avatar"`
-	Events           []Event     `json:"-" gorm:"foreignKey:CreatorId"`
-	Reactions        []Reaction  `json:"-" gorm:"foreignKey:UserId"`
-	InterestedEvents []Event     `json:"-" gorm:"many2many:interested_events;"`
-	UserGroup        []UserGroup `json:"-" gorm:"foreignkey:UserID;association_foreignkey:ID"`
-	Comments         []Comment   `json:"-" gorm:"foreignKey:CreatorId"`
+	Id                  string               `gorm:"primaryKey;type:varchar(255)" json:"id"`
+	Name                string               `gorm:"column:name" json:"name"`
+	Email               string               `gorm:"column:email;unique" json:"email"`
+	Avatar              string               `gorm:"column:avatar" json:"avatar"`
+	NotificationSetting *NotificationSetting `json:"-"`
+	Events              []Event              `json:"-" gorm:"foreignKey:CreatorId"`
+	Reactions           []Reaction           `json:"-" gorm:"foreignKey:UserId"`
+	InterestedEvents    []Event              `json:"-" gorm:"many2many:interested_events;"`
+	UserGroup           []UserGroup          `json:"-" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+	Comments            []Comment            `json:"-" gorm:"foreignKey:CreatorId"`
 }
 
 func NewUser(name string, email string, avatar string) *User {

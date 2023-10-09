@@ -367,8 +367,15 @@ func SubscribeUserToEvent(c *gin.Context) {
 	}
 
 	services.NotifyEventCreatorOnUserSubscription(event.CreatorId, event.Title, user.Name)
-	services.SendEventSubscriptionEmail(user, event)
+	notif, code, err := services.GetNotificationSettingByUserID(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
 
+	if notif.Email {
+		services.SendEventSubscriptionEmail(user, event)
+	}
 	response.Success(c, http.StatusOK, "User successfully subscribed to event", nil)
 }
 
@@ -404,8 +411,15 @@ func UnsubscribeFromEvent(c *gin.Context) {
 	}
 
 	services.NotifyEventCreatorOnUserUnSubscription(event.CreatorId, event.Title, user.Name)
-	services.SendEventUnsubscriptionEmail(user, event)
+	notif, code, err := services.GetNotificationSettingByUserID(user.Id)
+	if err != nil {
+		response.Error(c, code, err.Error())
+		return
+	}
 
+	if notif.Email {
+		services.SendEventUnsubscriptionEmail(user, event)
+	}
 	response.Success(c, http.StatusOK, "User successfully unsubscribed to event", nil)
 }
 
