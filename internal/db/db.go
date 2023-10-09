@@ -47,7 +47,6 @@ func SetupDB() {
 	err = Migrate()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to migrate DB: %v", err))
-
 	}
 }
 

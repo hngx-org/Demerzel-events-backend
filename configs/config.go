@@ -5,8 +5,11 @@ import (
 	"demerzel-events/dependencies/mailersend"
 	"demerzel-events/dependencies/mailgun"
 	"demerzel-events/internal/db"
+	"demerzel-events/internal/models"
 	"demerzel-events/pkg/smtp"
+	"demerzel-events/services"
 	"fmt"
+
 	"github.com/joho/godotenv"
 )
 
@@ -22,6 +25,14 @@ func Load() {
 
 	// Initialize firebase
 	firebase.Initialize()
+
+	// Check if tags table hasn't been populated already(if it is empty)
+	var tagsCount int64
+	db.DB.Model(&models.Tag{}).Count(&tagsCount)
+
+	if tagsCount == 0 {
+		services.PrepopulateTags()
+	}
 
 	// Initialize mailgun
 	mailgun.Initialize()
