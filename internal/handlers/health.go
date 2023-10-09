@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"demerzel-events/pkg/response"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
 func HealthHandler(c *gin.Context) {
