@@ -32,11 +32,29 @@ func parseGroupResponse(group *models.Group) models.GroupResponse {
 	return groupResponse
 }
 
-func CreateGroup(group *models.Group) (*models.Group, error) {
-	if err := db.DB.Create(group).Error; err != nil {
+func CreateGroup(requestBody *models.NewGroupReqBody) (*models.Group, error) {
+	var newGroup models.Group
+	newGroup.Name = requestBody.Name
+	newGroup.Image = requestBody.Image
+
+	// preload the tags based on their IDs
+	tags := []models.Tag{}
+	if err := db.DB.Where(requestBody.Tags).Find(&tags).Error; err != nil {
 		return nil, err
 	}
-	return group, nil
+
+	// Ensure at least one valid tag was added
+	if len(tags) == 0 {
+		return nil, errors.New("At least one valid tag must be added")
+	}
+
+	// add those tags to the new group to be created
+	newGroup.Tags = tags
+
+	if err := db.DB.Create(&newGroup).Error; err != nil {
+		return nil, err
+	}
+	return &newGroup, nil
 }
 
 func SubscribeUserToGroup(userID, groupID string) (*models.UserGroup, error) {
@@ -113,36 +131,47 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-func ListGroups(name string, limit int, offset int) ([]types.GroupDetailResponse, *int64, error) {
-	var groupDetailsList []types.GroupDetailResponse
+func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, *int64, error) {
+	var groupDetailsList []models.Group
+
 	var totalGroups int64
 
 	query := db.DB.Model(&models.Group{})
+
 	if name != "" {
 		query = query.Where("name LIKE ?", "%"+name+"%")
 	}
 
-	query = query.Select(`
-		groups.id AS id,
-		groups.name AS name,
-		groups.image AS image,
-		groups.created_at AS created_at,
-		groups.updated_at AS updated_at,
-		COUNT(DISTINCT group_events.id) AS events_count,
-		COUNT(DISTINCT user_groups.id) AS members_count
-	`).
-		Joins("LEFT JOIN group_events ON groups.id = group_events.group_id").
-		Joins("LEFT JOIN user_groups ON groups.id = user_groups.group_id").
-		Group("groups.id, groups.name, groups.image, groups.created_at, groups.updated_at")
-
-	err := query.Offset(offset).Limit(limit).Scan(&groupDetailsList).Error
-
+	err := query.
+		Preload("Tags").
+		Preload("Events", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id")
+		}).
+		Preload("Members", "id").
+		Offset(offset).
+		Limit(limit).
+		Find(&groupDetailsList).Error
 	if err != nil {
 		return nil, nil, err
 	}
 
+	var response []map[string]interface{}
+	for _, group := range groupDetailsList {
+		groupMap := map[string]interface{}{
+			"id":            group.ID,
+			"name":          group.Name,
+			"image":         group.Image,
+			"created_at":    group.CreatedAt,
+			"updated_at":    group.UpdatedAt,
+			"tags":          group.Tags,
+			"members_count": len(group.Members),
+			"events_count":  len(group.Events),
+		}
+		response = append(response, groupMap)
+	}
+
 	query.Count(&totalGroups)
-	return groupDetailsList, &totalGroups, nil
+	return &response, &totalGroups, nil
 }
 
 func GetGroupsByUserId(userId string, limit int, offset int) ([]models.Group, *int64, error) {
@@ -150,6 +179,7 @@ func GetGroupsByUserId(userId string, limit int, offset int) ([]models.Group, *i
 	var totalGroups int64
 
 	dbQuery := db.DB.
+		Preload("Tags").
 		Joins("JOIN user_groups ON groups.id = user_groups.group_id").
 		Where("user_groups.user_id = ?", userId)
 
@@ -226,7 +256,7 @@ func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
 	var groupDetails types.GroupDetailResponse
 	var group models.Group
 
-	err := db.DB.Model(&models.Group{}).Where("id = ?", id).First(&group).Error
+	err := db.DB.Model(&models.Group{}).Where("id = ?", id).Preload("Tags").First(&group).Error
 
 	if err != nil {
 		return nil, http.StatusNotFound, err
@@ -245,6 +275,7 @@ func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
 	groupDetails.UpdatedAt = group.UpdatedAt
 	groupDetails.EventsCount = eventCount
 	groupDetails.MembersCount = memberCount
+	groupDetails.Tags = group.Tags
 
 	return &groupDetails, http.StatusOK, nil
 

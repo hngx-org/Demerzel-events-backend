@@ -7,14 +7,23 @@ import (
 	"gorm.io/gorm"
 )
 
+type NewGroupReqBody struct {
+	Name  string `json:"name" binding:"required"`
+	Image string `json:"image" binding:"required"`
+	// Tags  []uint `json:"tags" binding:"required,min=1,max=5,dive,required"`
+	Tags []uint `json:"tags" binding:"required"`
+}
+
 type Group struct {
-	ID        string      `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Name      string      `json:"name" validate:"required"`
-	Image     string      `json:"image"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
-	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
-	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
+	ID        string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Name      string    `json:"name" validate:"required"`
+	Image     string    `json:"image"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+
+	Members []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
+	Events  []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
+	Tags    []Tag       `json:"tags" gorm:"many2many:group_tags"`
 }
 
 type GroupResponse struct {
@@ -25,6 +34,7 @@ type GroupResponse struct {
 	UpdatedAt time.Time       `json:"updated_at"`
 	Members   []UserGroup     `json:"members"`
 	Events    []EventResponse `json:"events"`
+	Tags      []Tag           `json:"tags"`
 }
 
 type UserGroup struct {
@@ -35,6 +45,11 @@ type UserGroup struct {
 	UpdatedAt time.Time `json:"updated_at"`
 
 	User User `json:"user" gorm:"foreignkey:UserID;association_foreignkey:ID"`
+}
+
+type GroupTag struct {
+	GroupID string
+	TagID   uint
 }
 
 type UpdateGroupRequest struct {
