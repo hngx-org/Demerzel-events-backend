@@ -12,7 +12,7 @@ import (
 )
 
 func CreateGroup(ctx *gin.Context) {
-
+	minTags, maxTags := 1, 5
 	rawUser, exists := ctx.Get("user")
 
 	if !exists {
@@ -27,11 +27,7 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	var requestBody struct {
-		Name  string `json:"name" binding:"required"`
-		Image string `json:"image" binding:"required"`
-	}
-
+	var requestBody models.NewGroupReqBody
 	if err := ctx.ShouldBind(&requestBody); err != nil {
 		response.Error(
 			ctx,
@@ -41,24 +37,30 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	var newGroup models.Group
-	newGroup.Name = requestBody.Name
-	newGroup.Image = requestBody.Image
+	tags := requestBody.Tags
+	if len(tags) < minTags || len(tags) > maxTags {
+		response.Error(
+			ctx,
+			http.StatusBadRequest,
+			"Invalid request body: minimum tags is 1 and maximum tags is 5",
+		)
+		return
+	}
 
-	group, err := services.CreateGroup(&newGroup)
+	group, err := services.CreateGroup(&requestBody)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	services.SubscribeUserToGroup(user.Id, group.ID)
-	services.SendNewGroupNotificationToAllGroupNotificationEnabledUsers(newGroup.Name, user.Name, user.Id)
+	services.SendNewGroupNotificationToAllGroupNotificationEnabledUsers(group.Name, user.Name, user.Id)
 
 	response.Success(
 		ctx,
 		http.StatusCreated,
 		"Group created successfully",
-		newGroup,
+		group,
 	)
 }
 

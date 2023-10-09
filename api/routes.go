@@ -84,5 +84,8 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.PUT("/notifications/settings", handlers.UpdateNotificationSettings)
 	apiRoutes.PUT("/notifications/:id", handlers.UpdateUserNotification)
 
+	// Tag routes
+	apiRoutes.GET("/tags", handlers.GetTags)
+
 	return r
 }

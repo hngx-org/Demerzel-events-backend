@@ -14,6 +14,8 @@ func Migrate() error {
 		&models.Notification{},
 		&models.UserNotification{},
 		&models.Reaction{},
+		&models.Tag{},
+		&models.GroupTag{},
 		&models.NotificationSetting{},
 	)
 	return err
