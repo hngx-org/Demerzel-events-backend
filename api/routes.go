@@ -50,7 +50,7 @@ func BuildRoutesHandler() *gin.Engine {
 
 	// User routes
 	apiRoutes.GET("/users/current", handlers.GetCurrentUser)
-	apiRoutes.PUT("/users/", handlers.UpdateUser)
+	apiRoutes.PUT("/users", handlers.UpdateUser)
 	apiRoutes.GET("/users", handlers.GetUsers)
 	apiRoutes.POST("/users/logout", handlers.LogoutUser)
 
@@ -66,6 +66,7 @@ func BuildRoutesHandler() *gin.Engine {
 	apiRoutes.POST("/events/:id/unsubscribe", handlers.UnsubscribeFromEvent)
 	apiRoutes.GET("/events/:event_id/attendees", handlers.GetEventAttendees)
 	apiRoutes.GET("/events/:event_id", handlers.GetEventHandler)
+	apiRoutes.PUT("/events/:event_id", handlers.UpdateEvent)
 	apiRoutes.DELETE("/events/:event_id", handlers.DeleteEventHandler)
 
 	apiRoutes.POST("/events/:id/reactions", handlers.ToggleEventReaction)

@@ -48,7 +48,7 @@ type UserGroup struct {
 }
 
 type GroupTag struct {
-	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	ID      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	GroupID string `json:"group_id" gorm:"type:varchar(255)"`
 	TagID   uint
 }
@@ -65,6 +65,12 @@ func (g *Group) BeforeCreate(tx *gorm.DB) error {
 
 func (uG *UserGroup) BeforeCreate(tx *gorm.DB) error {
 	uG.ID = uuid.NewString()
+
+	return nil
+}
+
+func (gT *GroupTag) BeforeCreate(tx *gorm.DB) error {
+	gT.ID = uuid.NewString()
 
 	return nil
 }

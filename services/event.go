@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"time"
 
 	"gorm.io/gorm"
@@ -313,4 +314,46 @@ func GetEventAttendees(eventId string) (*[]models.User, error) {
 	}
 
 	return &event.Attendees, nil
+}
+
+func UpdateEvent(eventId string, userId string, data models.UpdateEvent) (*models.Event, error) {
+	var event models.Event
+	err := db.DB.Where("id = ?", eventId).First(&event).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("event does not exist")
+		}
+		return nil, err
+	}
+
+	if event.CreatorId != userId {
+		return nil, errors.New("user cannot update event")
+	}
+
+	updatable := []string{
+		"Thumbnail",
+		"Location",
+		"Description",
+		"StartDate",
+		"EndDate",
+		"StartTime",
+		"EndTime",
+	}
+
+	for _, value := range updatable {
+		field := reflect.ValueOf(&data).Elem().FieldByName(value)
+		if field.IsValid() {
+			if !field.IsZero() {
+				reflect.ValueOf(&event).Elem().FieldByName(value).SetString(field.String())
+			}
+		}
+	}
+
+	err = db.DB.Save(&event).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &event, nil
 }
