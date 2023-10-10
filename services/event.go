@@ -64,17 +64,28 @@ func ListUpcomingEvents() ([]models.Event, error) {
 }
 
 func DeleteEvent(eventID string, userID string) (int, error) {
-
-	event, code, err := GetEventByID(eventID)
+	var event models.Event
+	err := db.DB.Model(&models.Event{}).
+		Where("id = ?", eventID).
+		First(&event).Error
 
 	if err != nil {
-		return code, err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return http.StatusNotFound, errors.New("coomment doesn't exist")
+		}
+		return http.StatusInternalServerError, err
 	}
 
 	if event.CreatorId != userID {
 		return http.StatusUnauthorized, fmt.Errorf("you are not authorized to delete this event")
 	}
 
+	// Delete associated InterestedEvent(attendees) records
+	if err := db.DB.Where("event_id = ?", eventID).Delete(&models.InterestedEvent{}).Error; err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Delete event itself
 	err = db.DB.Delete(&event).Error
 
 	if err != nil {
