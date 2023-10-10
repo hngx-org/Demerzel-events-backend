@@ -49,7 +49,7 @@ type UserGroup struct {
 
 type GroupTag struct {
 	ID      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	GroupID string
+	GroupID string `json:"group_id" gorm:"type:varchar(255)"`
 	TagID   uint
 }
 
