@@ -20,6 +20,17 @@ type NewEvent struct {
 	EndTime     string   `json:"end_time"`
 }
 
+type UpdateEvent struct {
+	Thumbnail   string `json:"thumbnail"`
+	Location    string `json:"location"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	StartDate   string `json:"start_date"`
+	EndDate     string `json:"end_date"`
+	StartTime   string `json:"start_time"`
+	EndTime     string `json:"end_time"`
+}
+
 type NewGroupEvent struct {
 	EventId string `json:"event_id"`
 	GroupId string `json:"group_id"`

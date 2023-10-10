@@ -443,3 +443,50 @@ func GetUserEventSubscriptions(c *gin.Context) {
 
 	response.Success(c, http.StatusOK, "User event subscriptions retrieved", map[string]interface{}{"events": events})
 }
+
+func UpdateEvent(c *gin.Context) {
+	rawUser, exists := c.Get("user")
+	if !exists {
+		response.Error(c, http.StatusConflict, "error: unable to retrieve user from context")
+		return
+	}
+
+	user, ok := rawUser.(*models.User)
+	if !ok {
+		response.Error(c, http.StatusConflict, "error: invalid user type in context")
+		return
+	}
+
+	id := c.Param("event_id")
+	var input models.UpdateEvent
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body format: %s", err.Error()))
+		return
+	}
+
+	event, err := services.UpdateEvent(id, user.Id, input)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	go sendEventUpdateEmail(event)
+	response.Success(c, http.StatusOK, "Event updated successfully", event)
+}
+
+func sendEventUpdateEmail(event *models.Event) {
+	users, err := services.GetEventAttendeesWithEmailNotif(event.Id)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	var emails []string
+	for _, user := range *users {
+		emails = append(emails, user.Email)
+	}
+
+	services.SendEventUpdateEmail(event, emails)
+	fmt.Println("successfully sent event update email to all attendees")
+}

@@ -46,6 +46,28 @@ func SendEventUnsubscriptionEmail(user *models.User, event *models.EventResponse
 	return sendEmail(mailersend.Ms, &params)
 }
 
+func SendEventUpdateEmail(event *models.Event, emails []string) error {
+	body := `
+	<h3 style="text-align: center;">Hello chief.</h3>
+	<p style="text-align: center;">An event "%s" that you subscribed to has been updated.</p>
+	<p style="text-align: center;">You can add the event to your calendar with the updated details by clicking <a href="%s">here</a></p>`
+
+	startDate, _ := helpers.FormatDateTimeStr(event.StartDate, event.StartTime)
+	endDate, _ := helpers.FormatDateTimeStr(event.EndDate, event.EndTime)
+
+	calendarUrl := "https://calendar.google.com/calendar/render?action=TEMPLATE&text=%s&details=%s&dates=%s/%s&location=%s"
+	calendarUrl = fmt.Sprintf(calendarUrl, event.Title, event.Description, startDate, endDate, event.Location)
+
+	params := types.MailSendParam{
+		Recipient: emails,
+		Sender:    os.Getenv("MAIL_FROM"),
+		Subject:   "Event updated",
+		Body:      fmt.Sprintf(body, event.Title, calendarUrl),
+	}
+
+	return sendEmail(mailersend.Ms, &params)
+}
+
 func sendEmail(mailer types.Mailer, params *types.MailSendParam) error {
 	return mailer.Send(params)
 }

@@ -136,7 +136,7 @@ func SendNewGroupNotificationToAllGroupNotificationEnabledUsers(groupName, creat
 }
 
 func SendNewEventNotificationToAllEventNotificationEnabledUsers(eventName, creatorName, creatorId string) (int, error) {
-	
+
 	enable := true
 
 	users, _, _ := GetUsersWithEnabledNotificationSettings(nil, &enable, nil, nil)
@@ -315,4 +315,21 @@ func GetUsersWithEnabledNotificationSettings(group, event, reminder, email *bool
 	}
 
 	return users, http.StatusOK, nil
+}
+
+func GetEventAttendeesWithEmailNotif(eventId string) (*[]models.User, error) {
+	var users []models.User
+	r := db.DB.
+		Table("users").
+		Select("users.*").
+		Joins("JOIN notification_settings ON notification_settings.user_id = users.id").
+		Joins("JOIN interested_events ON interested_events.user_id = users.id").
+		Where("notification_settings.email = ? AND interested_events.event_id = ?", true, eventId).
+		Find(&users)
+
+	if r.Error != nil {
+		return nil, r.Error
+	}
+
+	return &users, nil
 }

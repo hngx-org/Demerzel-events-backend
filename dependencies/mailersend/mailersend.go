@@ -28,7 +28,10 @@ func (ms *Mailersend) Send(param *types.MailSendParam) error {
 	defer cancel()
 
 	from := mailersend.From{Email: param.Sender}
-	recipients := []mailersend.Recipient{{Email: param.Recipient[0]}}
+	var recipients []mailersend.Recipient
+	for _, recipient := range param.Recipient {
+		recipients = append(recipients, mailersend.Recipient{Email: recipient})
+	}
 
 	message := ms.ms.Email.NewMessage()
 
