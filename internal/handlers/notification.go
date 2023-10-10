@@ -95,6 +95,31 @@ func UpdateUserNotification(ctx *gin.Context) {
 
 }
 
+func UpdateUserNotifications(ctx *gin.Context) {
+
+	var requestBody struct {
+		Read bool `json:"read" validate:"required"`
+		NotificationIds []string `json:"notification_ids" validate:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		response.Error(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	
+
+	 code, err := services.UpdateUserNotifications(requestBody.NotificationIds, requestBody.Read)
+
+	if err != nil {
+		response.Error(ctx, code, err.Error())
+		return
+	}
+
+	response.Success(ctx, code, "Notifications updated successfully", nil)
+
+}
+
 func ListNotifications(ctx *gin.Context) {
 	notifications, status, err := services.ListNotifications()
 
