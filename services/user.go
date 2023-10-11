@@ -51,9 +51,12 @@ func CreateUser(user *models.User) (*models.User, error) {
 }
 
 func UpdateUserById(user *models.User, data types.UserUpdatables) (*models.User, error) {
-	user.Name = data.Name
 	if data.Avatar != "" {
 		user.Avatar = data.Avatar
+	}
+
+	if data.Name != "" {
+		user.Avatar = data.Name
 	}
 
 	if err := db.DB.Save(user).Error; err != nil {
