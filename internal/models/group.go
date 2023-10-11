@@ -10,8 +10,7 @@ import (
 type NewGroupReqBody struct {
 	Name  string `json:"name" binding:"required"`
 	Image string `json:"image" binding:"required"`
-	// Tags  []uint `json:"tags" binding:"required,min=1,max=5,dive,required"`
-	Tags []uint `json:"tags" binding:"required"`
+	Tags  []uint `json:"tags" binding:"required"`
 }
 
 type Group struct {
@@ -48,9 +47,9 @@ type UserGroup struct {
 }
 
 type GroupTag struct {
-	ID      string `json:"id" gorm:"primaryKey;autoIncrement"`
+	Id      uint   `json:"id" gorm:"primaryKey;autoIncrement"`
 	GroupID string `json:"group_id" gorm:"type:varchar(255)"`
-	TagID   uint
+	TagID   uint   `json:"tag_id"`
 }
 
 type UpdateGroupRequest struct {
