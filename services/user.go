@@ -56,7 +56,7 @@ func UpdateUserById(user *models.User, data types.UserUpdatables) (*models.User,
 	}
 
 	if data.Name != "" {
-		user.Avatar = data.Name
+		user.Name = data.Name
 	}
 
 	if err := db.DB.Save(user).Error; err != nil {
