@@ -96,10 +96,29 @@ func UpdateUserNotification(userNotificationID string, read bool) (int, error) {
 	return http.StatusOK, nil
 }
 
+func UpdateUserNotifications(ids []string, read bool) (int, error) {
+
+	for _, id := range ids {
+
+		_, code, err := GetUserNotificationByID(id)
+		if err != nil {
+			return code, err
+		}
+
+		code, err = UpdateUserNotification(id, read)
+
+		if err != nil {
+			return code, err
+		}
+	}
+
+	return http.StatusOK, nil
+}
+
 func ListUserNotifications(userID string) ([]types.UserNotificationResponse, int, error) {
 	var notificationsResponse []types.UserNotificationResponse
 
-	err := db.DB.Model(&models.UserNotification{}).Where("user_id = ?", userID).Preload("Notification").Find(&notificationsResponse).Error
+	err := db.DB.Model(&models.UserNotification{}).Where("user_id = ?", userID).Preload("Notification").Order("created_at desc").Find(&notificationsResponse).Error
 
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
