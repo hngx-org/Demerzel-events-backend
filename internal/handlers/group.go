@@ -7,7 +7,6 @@ import (
 	"demerzel-events/services"
 	"fmt"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -47,7 +46,7 @@ func CreateGroup(ctx *gin.Context) {
 		return
 	}
 
-	group, err := services.CreateGroup(&requestBody)
+	group, err := services.CreateGroup(&requestBody, user.Id)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
@@ -216,7 +215,7 @@ func GetGroupById(c *gin.Context) {
 }
 
 func DeleteGroup(c *gin.Context) {
-	id := c.Params.ByName("id")
+	id := c.Param("id")
 	if id == "" {
 		response.Error(c, http.StatusBadRequest, "Please provide a valid group id")
 		return

@@ -14,4 +14,5 @@ type GroupDetailResponse struct {
 	EventsCount  int64        `json:"events_count"`
 	MembersCount int64        `json:"members_count"`
 	Tags         []models.Tag `json:"tags"`
+	CreatorId    string       `json:"creator_id"`
 }

@@ -100,9 +100,8 @@ type GroupEvent struct {
 	Id      string `json:"id" gorm:"primaryKey;type:varchar(255)"`
 	GroupId string `json:"group_id" gorm:"type:varchar(255)"`
 	EventId string `json:"event_id" gorm:"type:varchar(255)"`
-
-	Group Group `gorm:"foreignKey:GroupId; constraint:OnUpdate:CASCADE"`
-	Event Event `gorm:"foreignKey:EventId; constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Group Group `gorm:"foreignKey:GroupId; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Event Event `gorm:"foreignKey:EventId; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 func (gE *GroupEvent) BeforeCreate(tx *gorm.DB) error {

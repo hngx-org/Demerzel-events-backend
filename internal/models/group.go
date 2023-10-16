@@ -14,21 +14,23 @@ type NewGroupReqBody struct {
 }
 
 type Group struct {
-	ID        string    `json:"id" gorm:"primaryKey;type:varchar(255)"`
-	Name      string    `json:"name" validate:"required"`
-	Image     string    `json:"image"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-
-	Members []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
-	Events  []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
-	Tags    []Tag       `json:"tags" gorm:"many2many:group_tags"`
+	ID        string      `json:"id" gorm:"primaryKey;type:varchar(255)"`
+	Name      string      `json:"name" validate:"required"`
+	Image     string      `json:"image"`
+	CreatorId string      `json:"creator_id" gorm:"type:varchar(255)"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+	Members   []UserGroup `json:"members" gorm:"foreignkey:GroupID;association_foreignkey:ID;constraint:OnDelete:CASCADE"`
+	Events    []Event     `json:"events,omitempty" gorm:"many2many:group_events"`
+	Tags      []Tag       `json:"tags" gorm:"many2many:group_tags; constraint:OnDelete:CASCADE"`
+	Creator   *User       `json:"creator,omitempty" gorm:"foreignKey:CreatorId;association_foreignkey:ID"`
 }
 
 type GroupResponse struct {
 	ID        string          `json:"id"`
 	Name      string          `json:"name"`
 	Image     string          `json:"image"`
+	CreatorId string          `json:"creator_id"`
 	CreatedAt time.Time       `json:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at"`
 	Members   []UserGroup     `json:"members"`
