@@ -32,10 +32,11 @@ func parseGroupResponse(group *models.Group) models.GroupResponse {
 	return groupResponse
 }
 
-func CreateGroup(requestBody *models.NewGroupReqBody) (*models.Group, error) {
+func CreateGroup(requestBody *models.NewGroupReqBody, creatorId string) (*models.Group, error) {
 	var newGroup models.Group
 	newGroup.Name = requestBody.Name
 	newGroup.Image = requestBody.Image
+	newGroup.CreatorId = creatorId
 
 	// preload the tags based on their IDs
 	tags := []models.Tag{}
@@ -45,7 +46,7 @@ func CreateGroup(requestBody *models.NewGroupReqBody) (*models.Group, error) {
 
 	// Ensure at least one valid tag was added
 	if len(tags) == 0 {
-		return nil, errors.New("At least one valid tag must be added")
+		return nil, errors.New("at least one valid tag must be added")
 	}
 
 	// add those tags to the new group to be created
@@ -147,7 +148,7 @@ func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, 
 		Preload("Events", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id")
 		}).
-		Preload("Members", "id").
+		Preload("Members").
 		Offset(offset).
 		Limit(limit).
 		Find(&groupDetailsList).Error
@@ -166,6 +167,7 @@ func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, 
 			"tags":          group.Tags,
 			"members_count": len(group.Members),
 			"events_count":  len(group.Events),
+			"creator_id":    group.CreatorId,
 		}
 		response = append(response, groupMap)
 	}
@@ -276,6 +278,7 @@ func GetGroupWithDetails(id string) (*types.GroupDetailResponse, int, error) {
 	groupDetails.EventsCount = eventCount
 	groupDetails.MembersCount = memberCount
 	groupDetails.Tags = group.Tags
+	groupDetails.CreatorId = group.CreatorId
 
 	return &groupDetails, http.StatusOK, nil
 
