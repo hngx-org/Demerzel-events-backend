@@ -7,6 +7,8 @@ import (
 	"demerzel-events/services"
 	"fmt"
 	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -145,6 +147,7 @@ func UpdateGroup(c *gin.Context) {
 
 func ListGroups(c *gin.Context) {
 	name := c.Query("name")
+	tag, _ := strconv.Atoi(c.Query("tag"))
 
 	// Extract query parameters for pagination
 	limit, offset, err := helpers.GetLimitAndOffset(c)
@@ -153,7 +156,7 @@ func ListGroups(c *gin.Context) {
 		return
 	}
 
-	groups, totalGroups, err := services.ListGroups(name, *limit, *offset)
+	groups, totalGroups, err := services.ListGroups(name, tag, *limit, *offset)
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "error: failed to fetch groups")
 		return
