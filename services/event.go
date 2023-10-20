@@ -188,7 +188,6 @@ func ListEvents(startDate string, title string, dayOfWeek int, month int, weekNu
 
 	// Filter by day of the week (1 - 6 = Monday - Sunday)
 	if dayOfWeek >= 1 && dayOfWeek <= 7 {
-		fmt.Println("\nHHH", dayOfWeek)
 		query = query.Where("DAYOFWEEK(start_date) = ?", dayOfWeek)
 	}
 
