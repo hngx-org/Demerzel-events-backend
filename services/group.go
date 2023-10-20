@@ -132,7 +132,7 @@ func UpdateGroupById(id string, data *models.UpdateGroupRequest) (*models.Group,
 	return group, http.StatusOK, nil
 }
 
-func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, *int64, error) {
+func ListGroups(name string, tag int, limit int, offset int) (*[]map[string]interface{}, *int64, error) {
 	var groupDetailsList []models.Group
 
 	var totalGroups int64
@@ -141,6 +141,11 @@ func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, 
 
 	if name != "" {
 		query = query.Where("name LIKE ?", "%"+name+"%")
+	}
+
+	if tag > 0 {
+		query = query.Joins("JOIN group_tags ON groups.id = group_tags.group_id").
+			Where("group_tags.tag_id = ?", tag)
 	}
 
 	err := query.
@@ -152,6 +157,7 @@ func ListGroups(name string, limit int, offset int) (*[]map[string]interface{}, 
 		Offset(offset).
 		Limit(limit).
 		Find(&groupDetailsList).Error
+
 	if err != nil {
 		return nil, nil, err
 	}
